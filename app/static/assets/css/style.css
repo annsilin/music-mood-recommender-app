@@ -1,0 +1,280 @@
+:root {
+    --font-size-header: 66px;
+    --font-size-mood: 22px;
+    --font-size-genre: 32px;
+    --font-size-medium: 24px;
+    --font-size-small: 16px;
+    --mood-vertical-padding: 27px;
+    --mood-horizontal-padding: 30px;
+}
+
+.sections__container {
+    background-color: #10101e;
+    font-family: "Yanone Kaffeesatz", sans-serif;
+    /*padding-top: 51px;*/
+    /*padding-bottom: 60px;*/
+    width: 100%;
+    height: 100vh;
+    /*overflow-y: scroll;*/
+    overflow: auto;
+    scroll-behavior: smooth;
+    scroll-snap-type: y mandatory;
+
+}
+
+.section {
+    padding-top: 51px;
+    padding-bottom: 60px;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100vh;
+    scroll-snap-align: start;
+}
+
+.section-songs {
+    scroll-snap-stop: normal;
+    height: auto;
+}
+
+.section__content {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.section__header {
+    margin: 0;
+    text-transform: uppercase;
+    font-weight: 500;
+    font-size: var(--font-size-header);
+    line-height: 84px;
+    color: #FFFFFF;
+}
+
+#mood-container {
+    width: 504px;
+    height: 504px;
+    margin: 20px 0 20px 0;
+    position: relative;
+    background-image: url("data:image/svg+xml;utf8,%3Csvg preserveAspectRatio='none' viewBox='0 0 1 1' version='1.1' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='g'%3E%3Cstop offset='0' stop-color='%23fff' stop-opacity='0'%3E%3C/stop%3E%3Cstop offset='1' stop-color='%23fff' stop-opacity='1'%3E%3C/stop%3E%3C/linearGradient%3E%3Cmask id='m'%3E%3Crect x='0' y='0' width='1' height='1' fill='url(%23g)'%3E%3C/rect%3E%3C/mask%3E%3ClinearGradient id='a' gradientTransform='rotate(90)'%3E%3Cstop offset='0' stop-color='%2311B89A'%3E%3C/stop%3E%3Cstop offset='1' stop-color='%239208FF'%3E%3C/stop%3E%3C/linearGradient%3E%3ClinearGradient id='b' gradientTransform='rotate(90)'%3E%3Cstop offset='0' stop-color='%230094FF'%3E%3C/stop%3E%3Cstop offset='1' stop-color='%23FD0808'%3E%3C/stop%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='0' y='0' width='1' height='1' fill='url(%23a)' mask='url(%23m)'%3E%3C/rect%3E%3Crect x='0' y='0' width='1' height='1' fill='url(%23b)' mask='url(%23m)' transform='translate(1,1) rotate(180)'%3E%3C/rect%3E%3C/svg%3E ");
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 43px;
+}
+
+.text {
+    position: absolute;
+    font-style: normal;
+    font-weight: 500;
+    font-family: "Sofia Sans Condensed", sans-serif;
+    font-size: var(--font-size-mood);
+    line-height: 18px;
+    color: #FFFFFF;
+    text-transform: uppercase;
+}
+
+.top-left {
+    top: var(--mood-vertical-padding);
+    left: var(--mood-horizontal-padding);
+}
+
+.top-right {
+    top: var(--mood-vertical-padding);
+    right: var(--mood-horizontal-padding);
+}
+
+.bottom-left {
+    bottom: var(--mood-vertical-padding);;
+    left: var(--mood-horizontal-padding);
+}
+
+.bottom-right {
+    bottom: var(--mood-vertical-padding);;
+    right: var(--mood-horizontal-padding);
+}
+
+#square {
+    --size: 12;
+    --dot-size: 1px;
+    --container-width: 75%;
+    --container-height: 75%;
+
+    width: var(--container-width);
+    height: var(--container-height);
+
+    --total-dot-size: calc(var(--dot-size) * var(--size));
+    --total-spacing: calc(100% - var(--total-dot-size));
+    --spacing: calc(var(--total-spacing) / (var(--size) - 1));
+
+    background-image: radial-gradient(circle at 50%, #FFFFFF var(--dot-size), transparent var(--dot-size));
+    background-size: calc(var(--dot-size) + var(--spacing)) calc(var(--dot-size) + var(--spacing));
+}
+
+#circle {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background-color: #FFFFFF;
+    cursor: pointer;
+    border-radius: 50%;
+}
+
+.large-btn {
+    margin: 0;
+    padding: 16px 32px;
+    border: none;
+    background: #ECEFF2;
+    border-radius: 32px;
+    font-style: normal;
+    font-weight: 500;
+    font-size: var(--font-size-medium);
+    cursor: pointer;
+}
+
+.large-btn:active {
+    background: #9C99A1;
+}
+
+.genres-container {
+    width: 60vw;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: center;
+}
+
+.genre-radio {
+    display: inline-block;
+    position: relative;
+}
+
+.genre-radio input[type="radio"] {
+    display: none;
+}
+
+.genre-radio label {
+    display: inline-block;
+    padding: 24px 32px;
+    background: #181724;
+    border-radius: 100px;
+    color: #ffffff;
+    cursor: pointer;
+    text-transform: uppercase;
+    font-family: "Sofia Sans Condensed", sans-serif;
+    font-style: normal;
+    font-weight: 500;
+    font-size: var(--font-size-genre);
+}
+
+.genre-radio input[type="radio"]:checked + label {
+    background: #2C2733;
+}
+
+.songs-list {
+    padding: 0;
+}
+
+.songs-list__item {
+    display: flex;
+    flex-direction: column;
+    list-style-type: none;
+    justify-content: flex-start;
+    gap: 8px;
+}
+
+.songs-list__item::after {
+    content: '';
+    display: block;
+    width: 100%;
+    height: 1px;
+    background-color: #7B7B7B;
+    margin-top: 20px;
+    margin-bottom: 28px;
+}
+
+.songs-list__item:last-child::after {
+    display: none;
+}
+
+.songs-list__artist {
+    font-size: var(--font-size-small);
+    font-weight: 500;
+    text-align: left;
+    color: #7B7B7B
+}
+
+.songs-list__track {
+    font-size: var(--font-size-medium);
+    font-weight: 500;
+    text-align: left;
+    color: #FFFFFF;
+}
+
+.loading-animation {
+  display: none;
+  width: 200px;
+  height: 200px;
+  border: 30px solid #bdbdbd;
+  border-top: 30px solid #59447c;
+  border-radius: 100%;
+  margin: auto;
+  animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 1024px) {
+    .genres-container {
+        width: 85vw;
+    }
+}
+
+@media (max-width: 768px) {
+    .genres-container {
+        width: 90vw;
+    }
+
+    .genre-radio label {
+        padding: 12px 24px;
+    }
+
+    :root {
+        --font-size-header: 60px;
+        --font-size-genre: 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    :root {
+        --font-size-header: 40px;
+        --font-size-mood: 16px;
+        --mood-horizontal-padding: 23px;
+        --mood-vertical-padding: 19px;
+    }
+
+    #mood-container {
+        width: 361px;
+        height: 361px;
+    }
+
+    #circle {
+        width: 28px;
+        height: 28px;
+    }
+
+    .genres-container {
+        width: 95vw;
+    }
+
+}
