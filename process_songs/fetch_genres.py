@@ -135,7 +135,8 @@ def fetch_genre_from_lastfm(network, artist_name, track_name, album_name, whitel
             artist_tag_names = [tag.item.name.lower() for tag in artist_tags]
             genres = resolve_genres(artist_tag_names, whitelist, genre_tree)
 
-        return genres
+        return genres if len(genres) > 0 else None
+
     except pylast.PyLastError as e:
         logging.warning(f"Error fetching genres from Last.fm: {e}")
         return None
