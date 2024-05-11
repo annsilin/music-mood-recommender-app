@@ -4,21 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Music mood recommender</title>
+    <link href="../static/assets/css/normalize.css" rel="stylesheet">
     <link href="../static/assets/css/admin.css" rel="stylesheet">
 </head>
 <body>
 <main>
-    <div id="drop-area">
-        <p>Drag & Drop your CSV file here or click to select</p>
-        <input type="file" id="file-input" accept=".csv">
-        <div id="progress-bar">
-            <div id="progress"></div>
+    <form action="#" class="upload-form">
+        <div id="drop-area">
+            <p>Выберите или перетащите CSV файл</p>
+            <input type="file" id="file-input" accept=".csv">
         </div>
-    </div>
-    <button id="upload-btn" disabled>Upload</button>
+        <label>
+            <input type="checkbox" name="get-moods" id="get-moods">
+            Определять вероятности настроений
+        </label>
+        <label>
+            <input type="checkbox" name="get-genres" id="get-genres">
+            Определять жанры
+        </label>
+        <button id="upload-btn" disabled>Upload</button>
+    </form>
     <p id="message"></p>
 
-
+    <div id="log"></div>
 
 </main>
 

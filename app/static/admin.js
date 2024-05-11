@@ -1,38 +1,37 @@
 const dropArea = document.getElementById('drop-area');
 const fileInput = document.getElementById('file-input');
-const progress = document.getElementById('progress');
 const uploadBtn = document.getElementById('upload-btn');
 const message = document.getElementById('message');
 
-const handleDragOver = (event) => {
-    event.preventDefault();
+const handleDragOver = (e) => {
+    e.preventDefault();
     dropArea.classList.add('hover');
 };
 
-const handleDragLeave = (event) => {
-    event.preventDefault();
+const handleDragLeave = (e) => {
+    e.preventDefault();
     dropArea.classList.remove('hover');
 };
 
-const handleDrop = (event) => {
-    event.preventDefault();
+const handleDrop = (e) => {
+    e.preventDefault();
     dropArea.classList.remove('hover');
-    const file = event.dataTransfer.files[0];
+    const file = e.dataTransfer.files[0];
     if (file.type !== 'text/csv') {
         message.textContent = 'Invalid file type. Please upload a CSV file.';
         return;
     }
     fileInput.files = file;
-    uploadBtn.disabled = false; // Enable upload button
+    uploadBtn.disabled = false;
 };
 
-const handleInputChange = (event) => {
-    const file = event.target.files[0];
+const handleInputChange = (e) => {
+    const file = e.target.files[0];
     if (file.type !== 'text/csv') {
         message.textContent = 'Invalid file type. Please upload a CSV file.';
         return;
     }
-    uploadBtn.disabled = false; // Enable upload button
+    uploadBtn.disabled = false;
 };
 
 const uploadFile = async () => {
@@ -40,7 +39,15 @@ const uploadFile = async () => {
     const formData = new FormData();
     formData.append('file', file);
 
-    uploadBtn.disabled = true; // Disable upload button again
+    const getMoodsCheckbox = document.getElementById('get-moods');
+    const getGenresCheckbox = document.getElementById('get-genres');
+
+    formData.append('get-moods', getMoodsCheckbox.checked);
+    formData.append('get-genres', getGenresCheckbox.checked);
+
+    uploadBtn.disabled = true;
+    getMoodsCheckbox.disabled = true;
+    getGenresCheckbox.disabled = true;
     message.textContent = 'Uploading...';
 
     try {
@@ -48,19 +55,22 @@ const uploadFile = async () => {
             method: 'POST',
             body: formData,
         });
+
         const data = await response.json();
 
         if (data.success) {
             message.textContent = data.message;
-            fileInput.value = ''; // Clear file input after successful upload
-            uploadBtn.disabled = true; // Keep upload button disabled until new file is selected
+            fileInput.value = '';
+            uploadBtn.disabled = true;
+            getMoodsCheckbox.disabled = false;
+            getGenresCheckbox.disabled = false;
         }
     } catch (error) {
         console.error('Error uploading file:', error);
-        message.textContent = 'An error occurred while uploading the file.';
-        uploadBtn.disabled = false; // Re-enable upload button on error
-    } finally {
-        progress.style.width = '0%'; // Reset progress bar
+        message.textContent = 'An error occurred while processing the file.';
+        uploadBtn.disabled = false;
+        getMoodsCheckbox.disabled = false;
+        getGenresCheckbox.disabled = false;
     }
 };
 

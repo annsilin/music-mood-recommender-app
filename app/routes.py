@@ -1,4 +1,4 @@
-from flask import render_template, request, jsonify
+from flask import render_template, request, jsonify, Response
 from app import app, db
 from app.models import Song, Genre
 import random
@@ -7,6 +7,7 @@ from process_songs import fetch_genres, make_predictions
 from werkzeug.utils import secure_filename
 import csv
 import ast
+import logging
 
 
 @app.route('/')
@@ -21,7 +22,6 @@ def admin():
 
 @app.route('/get-songs', methods=['POST'])
 def get_songs():
-
     data = request.get_json()
     genre_id = data['genre']
     x = float(data['x'])
@@ -55,7 +55,11 @@ def get_songs():
 
     serialized_songs = [{
         'artist_name': song.artist_name,
-        'track_name': song.track_name
+        'track_name': song.track_name,
+        'happy_prob': song.happy,
+        'aggressive_prob': song.aggressive,
+        'sad_prob': song.sad,
+        'calm_prob': song.calm,
     } for song in selected_songs]
 
     return jsonify(serialized_songs)
@@ -63,8 +67,17 @@ def get_songs():
 
 @app.route('/process_csv', methods=['POST'])
 def process_csv_and_push_to_database():
+    # logger = logging.getLogger(__name__)
+    # logger.setLevel(logging.INFO)
+    # handler = logging.StreamHandler()
+    # formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    # handler.setFormatter(formatter)
+    # logger.addHandler(handler)
 
     file = request.files.get('file')
+
+    # logger.info("File upload in progress...")
+    # yield "data: File upload in progress...\n\n"
 
     if file is None or file.filename == '':
         return {'success': False, 'message': 'No file uploaded.'}
@@ -73,18 +86,61 @@ def process_csv_and_push_to_database():
         return {'success': False, 'message': f'Invalid file type: {filename}'}
 
     try:
+
         temp_file_path = os.path.join(app.config['TEMP_FOLDER'],
                                       f'{os.urandom(16).hex()}.csv')
         file.save(temp_file_path)
 
-        predictions_path = os.path.join(app.config['TEMP_FOLDER'], f'{os.urandom(16).hex()}.csv')
-        genres_path = os.path.join(app.config['TEMP_FOLDER'], f'{os.urandom(16).hex()}.csv')
-        make_predictions(temp_file_path, predictions_path)
-        fetch_genres(predictions_path, genres_path)
+        get_moods_flag = request.form['get-moods']
+        get_genres_flag = request.form['get-genres']
 
-        with open(genres_path, 'r', encoding='utf-8') as csvfile:
+        if get_moods_flag == 'true':
+            make_predictions(temp_file_path, temp_file_path)
+
+        if get_genres_flag == 'true':
+            genres_path = os.path.join(app.config['TEMP_FOLDER'], f'{os.urandom(16).hex()}.csv')
+            fetch_genres(temp_file_path, genres_path)
+            temp_file_path = genres_path
+
+        with open(temp_file_path, 'r', encoding='utf-8') as csvfile:
             csvreader = csv.DictReader(csvfile)
+
+            first_row = next(csvreader)
+
+            if get_moods_flag == 'true' and any(col not in first_row for col in
+                                                ['danceability', 'energy', 'key', 'loudness', 'mode', 'speechiness',
+                                                 'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo',
+                                                 'duration_ms', 'time_signature']):
+                raise Exception('Required columns for mood predictions are missing in the CSV file.')
+
+            elif get_moods_flag == 'false' and any(col not in first_row for col in ['happy', 'sad', 'calm', 'aggressive']):
+                raise Exception('"Predict moods" flag is not set but mood columns are missing in the CSV file.')
+
+            elif get_genres_flag == 'false' and any(col not in first_row for col in ['genre']):
+                raise Exception('"Get genres" flag is not set but "genre" column is missing in the CSV file.')
+
+            elif any(col not in first_row for col in ['name', 'album', 'artists']):
+                raise Exception('"name", "album", "artists" columns are missing in the CSV file.')
+
+            csvfile.seek(0)
+            next(csvreader)
+
             for row in csvreader:
+
+                if any(value == '' for value in row.values()):
+                    continue
+
+                if get_moods_flag == 'false':
+                    try:
+                        happy = float(row['happy'])
+                        sad = float(row['sad'])
+                        calm = float(row['calm'])
+                        aggressive = float(row['aggressive'])
+                        if happy + sad + calm + aggressive != 1.0:
+                            continue
+                    except ValueError:
+                        continue
+
                 artists_list = ast.literal_eval(row['artists'])
                 artists = ', '.join(artists_list)
                 genre_name = row['genre']
@@ -99,11 +155,13 @@ def process_csv_and_push_to_database():
                             aggressive=row['aggressive'], calm=row['calm'],
                             happy=row['happy'], sad=row['sad'], genre_id=genre.id)
                 db.session.add(song)
+                # yield f"Added song: {song.artist_name} - {song.track_name} to database. \n"
+                # yield "Added song to database. \n"
 
         db.session.commit()
-        os.remove(temp_file_path)
-        os.remove(predictions_path)
-        os.remove(genres_path)
+        for filename in os.listdir(app.config['TEMP_FOLDER']):
+            file_path = os.path.join(app.config['TEMP_FOLDER'], filename)
+            os.remove(file_path)
 
         return {'success': True, 'message': 'Data uploaded and processed successfully.'}
 

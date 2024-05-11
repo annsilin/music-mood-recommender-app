@@ -238,6 +238,10 @@
     .genres-container {
         width: 85vw;
     }
+
+    .genre-radio label {
+        padding: 20px 30px;
+    }
 }
 
 @media (max-width: 768px) {

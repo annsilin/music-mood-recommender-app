@@ -14,7 +14,6 @@ const fetchSongs = async (genre, normalizedX, normalizedY) => {
     try {
         const response = await fetch('/get-songs', options);
         songs = await response.json();
-        console.log(songs);
     } catch (error) {
         console.error('Error fetching songs:', error);
     } finally {
