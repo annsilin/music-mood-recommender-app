@@ -155,6 +155,14 @@ def fetch_genres_from_csv(network, filename, output_filename, whitelist, genre_t
     with open(filename, 'r', encoding='utf-8') as csvfile, open(output_filename, 'w', newline='',
                                                                 encoding='utf-8') as outfile:
         reader = csv.DictReader(csvfile)
+
+        first_row = next(reader)
+        if any(col not in first_row for col in ['name', 'album', 'artists']):
+            raise Exception('"name", "album", "artists" columns are missing in the CSV file.')
+
+        csvfile.seek(0)
+        next(reader)
+
         writer = csv.DictWriter(outfile, fieldnames=list(reader.fieldnames) + ['genre'])
         writer.writeheader()
 

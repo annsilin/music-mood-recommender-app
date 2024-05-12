@@ -80,10 +80,10 @@ def process_csv_and_push_to_database():
     # yield "data: File upload in progress...\n\n"
 
     if file is None or file.filename == '':
-        return {'success': False, 'message': 'No file uploaded.'}
+        return jsonify({'error': 'No file uploaded.'}), 500
     filename = secure_filename(file.filename)
     if not allowed_file(filename):
-        return {'success': False, 'message': f'Invalid file type: {filename}'}
+        return jsonify({'error': f'Invalid file type: {filename}'}), 500
 
     try:
 
@@ -107,19 +107,14 @@ def process_csv_and_push_to_database():
 
             first_row = next(csvreader)
 
-            if get_moods_flag == 'true' and any(col not in first_row for col in
-                                                ['danceability', 'energy', 'key', 'loudness', 'mode', 'speechiness',
-                                                 'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo',
-                                                 'duration_ms', 'time_signature']):
-                raise Exception('Required columns for mood predictions are missing in the CSV file.')
-
-            elif get_moods_flag == 'false' and any(col not in first_row for col in ['happy', 'sad', 'calm', 'aggressive']):
+            if get_moods_flag == 'false' and any(
+                    col not in first_row for col in ['happy', 'sad', 'calm', 'aggressive']):
                 raise Exception('"Predict moods" flag is not set but mood columns are missing in the CSV file.')
 
             elif get_genres_flag == 'false' and any(col not in first_row for col in ['genre']):
                 raise Exception('"Get genres" flag is not set but "genre" column is missing in the CSV file.')
 
-            elif any(col not in first_row for col in ['name', 'album', 'artists']):
+            elif get_genres_flag == 'false' and any(col not in first_row for col in ['name', 'album', 'artists']):
                 raise Exception('"name", "album", "artists" columns are missing in the CSV file.')
 
             csvfile.seek(0)
@@ -159,16 +154,27 @@ def process_csv_and_push_to_database():
                 # yield "Added song to database. \n"
 
         db.session.commit()
-        for filename in os.listdir(app.config['TEMP_FOLDER']):
-            file_path = os.path.join(app.config['TEMP_FOLDER'], filename)
-            os.remove(file_path)
-
-        return {'success': True, 'message': 'Data uploaded and processed successfully.'}
+        remove_temp_files(app.config['TEMP_FOLDER'])
+        return jsonify({'message': 'Data uploaded and processed successfully.'}), 200
 
     except Exception as e:
         db.session.rollback()
         app.logger.exception(f"Error processing CSV: {e}")
-        return {'success': False, 'message': 'An error occurred while processing the data.'}
+        remove_temp_files(app.config['TEMP_FOLDER'])
+        return jsonify({'error': str(e)}), 500
+
+
+def check_features_ranges(*features):
+    for feature in features:
+        if not 0.0 <= feature <= 1.0:
+            return False
+    return True
+
+
+def remove_temp_files(directory):
+    for filename in os.listdir(directory):
+        file_path = os.path.join(directory, filename)
+        os.remove(file_path)
 
 
 def allowed_file(filename):

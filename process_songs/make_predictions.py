@@ -40,6 +40,20 @@ def add_tonality_column(df):
     return df
 
 
+def check_columns_exist(df, required_columns):
+    """
+    Check if all required columns exist in the DataFrame.
+
+    Args:
+        df (pandas.DataFrame): The DataFrame with necessary features for predictions.
+        required_columns (list of strings): Required column names.
+
+    Returns:
+        boolean: True if all required columns exist, False otherwise.
+    """
+    return all(col in df.columns for col in required_columns)
+
+
 def make_predictions(dataset_path, output_path):
     """
     Applies a pre-trained classifier to predict probabilities and saves the results to a CSV file.
@@ -53,22 +67,27 @@ def make_predictions(dataset_path, output_path):
     """
     df = pd.read_csv(dataset_path)
 
-    df = df.dropna(subset=['acousticness', 'danceability', 'energy', 'key', 'mode', 'loudness',
-                           'speechiness', 'instrumentalness', 'liveness', 'valence',
-                           'tempo', 'duration_ms', 'time_signature'])
+    feature_columns = ['acousticness', 'danceability', 'energy', 'key', 'mode', 'loudness',
+                       'speechiness', 'instrumentalness', 'liveness', 'valence',
+                       'tempo', 'duration_ms', 'time_signature']
 
-    model = joblib.load(CLASSIFIER_FILE)
-    label_encoder = joblib.load(LABEL_ENCODER_FILE)
+    if not check_columns_exist(df, feature_columns):
+        raise Exception('Required columns for mood predictions are missing in the CSV file.')
+
+    df = df.dropna(subset=feature_columns)
 
     df = df.astype({'time_signature': 'int', 'key': 'int', 'mode': 'int'})
     df = add_tonality_column(df)
     df = df.astype({"tonality": "category", "time_signature": "category"})
 
-    feature_columns = ['acousticness', 'danceability', 'energy', 'tonality', 'loudness',
-                       'speechiness', 'instrumentalness', 'liveness', 'valence',
-                       'tempo', 'duration_ms', 'time_signature']
+    new_feature_columns = ['acousticness', 'danceability', 'energy', 'tonality', 'loudness',
+                           'speechiness', 'instrumentalness', 'liveness', 'valence',
+                           'tempo', 'duration_ms', 'time_signature']
 
-    features_df = df[feature_columns]
+    features_df = df[new_feature_columns]
+
+    model = joblib.load(CLASSIFIER_FILE)
+    label_encoder = joblib.load(LABEL_ENCODER_FILE)
 
     encoded_predictions = model.predict_proba(features_df)
     class_labels = label_encoder.classes_

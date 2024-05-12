@@ -58,16 +58,18 @@ const uploadFile = async () => {
 
         const data = await response.json();
 
-        if (data.success) {
+        if (response.ok) {
             message.textContent = data.message;
             fileInput.value = '';
             uploadBtn.disabled = true;
             getMoodsCheckbox.disabled = false;
             getGenresCheckbox.disabled = false;
+        } else {
+            throw new Error(`${data.error}`)
         }
     } catch (error) {
-        console.error('Error uploading file:', error);
-        message.textContent = 'An error occurred while processing the file.';
+        console.error('Error uploading file:', error.message);
+        message.textContent = `Error uploading file: ${error.message}`;
         uploadBtn.disabled = false;
         getMoodsCheckbox.disabled = false;
         getGenresCheckbox.disabled = false;
