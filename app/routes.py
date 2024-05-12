@@ -164,13 +164,6 @@ def process_csv_and_push_to_database():
         return jsonify({'error': str(e)}), 500
 
 
-def check_features_ranges(*features):
-    for feature in features:
-        if not 0.0 <= feature <= 1.0:
-            return False
-    return True
-
-
 def remove_temp_files(directory):
     for filename in os.listdir(directory):
         file_path = os.path.join(directory, filename)
