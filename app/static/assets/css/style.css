@@ -32,6 +32,7 @@
 }
 
 .section-songs {
+    display: none;
     scroll-snap-stop: normal;
     height: auto;
 }

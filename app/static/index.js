@@ -15,7 +15,15 @@ const getSelectedGenreId = () => {
     }
 };
 
-btnGeneratePlaylist.addEventListener('click', () => fetchSongs(getSelectedGenreId(), normalizedX, normalizedY));
+btnGeneratePlaylist.addEventListener('click', () => {
+    const genre = getSelectedGenreId();
+    if (genre) {
+        displaySongsSection();
+        fetchSongs(getSelectedGenreId(), normalizedX, normalizedY);
+    } else {
+        alert('Выберите жанр!');
+    }
+});
 document.addEventListener("DOMContentLoaded", fetchGenres);
 
 /* Function to scroll to the next section */

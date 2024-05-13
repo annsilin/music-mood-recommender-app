@@ -17,7 +17,7 @@ const createGenreElement = (genre) => {
     const radioInput = document.createElement('input');
     radioInput.type = 'radio';
     radioInput.id = genre.id;
-    radioInput.name = 'radios';
+    radioInput.name = 'genres-radios';
 
     const label = document.createElement('label');
     label.htmlFor = genre.id;
@@ -39,6 +39,10 @@ const renderSongs = (songs) => {
         songsContainer.appendChild(songItem);
     });
 };
+
+const displaySongsSection = () => {
+    document.querySelector('.section-songs').style.display = 'flex';
+}
 
 /* Function to create HTML element for song */
 const createSongElement = (song) => {

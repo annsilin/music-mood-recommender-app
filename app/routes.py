@@ -64,7 +64,7 @@ def get_songs():
     return jsonify(serialized_songs)
 
 
-@app.route('/process_csv', methods=['POST'])
+@app.route('/process-csv', methods=['POST'])
 def process_csv_and_push_to_database():
     # logger = logging.getLogger(__name__)
     # logger.setLevel(logging.INFO)

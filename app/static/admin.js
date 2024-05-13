@@ -51,7 +51,7 @@ const uploadFile = async () => {
     message.textContent = 'Uploading...';
 
     try {
-        const response = await fetch('/process_csv', {
+        const response = await fetch('/process-csv', {
             method: 'POST',
             body: formData,
         });
