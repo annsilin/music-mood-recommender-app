@@ -182,7 +182,7 @@ def fetch_genres_from_csv(network, filename, output_filename, whitelist, genre_t
 
 
 def initialize_lastfm_network():
-    load_dotenv()
+    load_dotenv('../.env')
     api_key = os.getenv("LASTFM_API_KEY")
     api_secret = os.getenv("LASTFM_API_SECRET")
 

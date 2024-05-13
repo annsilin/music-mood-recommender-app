@@ -1,6 +1,8 @@
 import sqlalchemy as sa
 import sqlalchemy.orm as so
 from app import db
+from werkzeug.security import generate_password_hash, check_password_hash
+from typing import Optional
 
 
 class Song(db.Model):
@@ -24,3 +26,15 @@ class Genre(db.Model):
 
     def __repr__(self):
         return f"{self.name}"
+
+
+class Admin(db.Model):
+    id: so.Mapped[int] = so.mapped_column(sa.Integer, primary_key=True)
+    username: so.Mapped[str] = so.mapped_column(sa.String(50), unique=True, nullable=False)
+    password_hash: so.Mapped[Optional[str]] = so.mapped_column(sa.String(128), nullable=False)
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)

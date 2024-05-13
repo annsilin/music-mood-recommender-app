@@ -34,6 +34,12 @@ const handleInputChange = (e) => {
     uploadBtn.disabled = false;
 };
 
+const getCookie = (name) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
 const uploadFile = async () => {
     const file = fileInput.files[0];
     const formData = new FormData();
@@ -53,7 +59,11 @@ const uploadFile = async () => {
     try {
         const response = await fetch('/process-csv', {
             method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': getCookie('csrf_access_token'),
+            },
             body: formData,
+            credentials: 'include',
         });
 
         const data = await response.json();

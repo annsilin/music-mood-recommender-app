@@ -1,13 +1,14 @@
-from flask import render_template, request, jsonify, Response
+from flask import render_template, request, jsonify, make_response, redirect, url_for
 from app import app, db
-from app.models import Song, Genre
+from app.models import Song, Genre, Admin
 import random
 import os
 from process_songs import fetch_genres, make_predictions
 from werkzeug.utils import secure_filename
 import csv
 import ast
-import logging
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt, set_access_cookies
+from datetime import datetime, timedelta
 
 
 @app.route('/')
@@ -16,8 +17,37 @@ def index():
 
 
 @app.route('/admin')
+@jwt_required(optional=True)
 def admin():
-    return render_template('admin.html')
+    current_user = get_jwt_identity()
+    if current_user:
+        return render_template('admin.html')
+    else:
+        return render_template('login.html')
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
+        if not username or not password:
+            print('Username and password are required')
+            return jsonify({'error': 'Username and password are required'}), 400
+
+        admin = Admin.query.filter_by(username=username).first()
+        if not admin or not admin.check_password(password):
+            print('Invalid username or password')
+            return jsonify({'error': 'Invalid username or password'}), 401
+
+        access_token = create_access_token(identity=admin.id)
+        response = make_response(jsonify({'message': 'Login successful'}), 200)
+        set_access_cookies(response, encoded_access_token=access_token)
+        return response
+    else:
+        if get_jwt_identity():
+            return redirect(url_for('admin'))
 
 
 @app.route('/get-songs', methods=['GET'])
@@ -65,18 +95,9 @@ def get_songs():
 
 
 @app.route('/process-csv', methods=['POST'])
+@jwt_required()
 def process_csv_and_push_to_database():
-    # logger = logging.getLogger(__name__)
-    # logger.setLevel(logging.INFO)
-    # handler = logging.StreamHandler()
-    # formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    # handler.setFormatter(formatter)
-    # logger.addHandler(handler)
-
     file = request.files.get('file')
-
-    # logger.info("File upload in progress...")
-    # yield "data: File upload in progress...\n\n"
 
     if file is None or file.filename == '':
         return jsonify({'error': 'No file uploaded.'}), 500
@@ -84,83 +105,101 @@ def process_csv_and_push_to_database():
     if not allowed_file(filename):
         return jsonify({'error': f'Invalid file type: {filename}'}), 500
 
-    try:
+    current_user = get_jwt_identity()
+    print(current_user)
+    if current_user is None:
+        print(current_user)
+        return jsonify({'error': 'Authorization required.'}), 401
+    else:
+        try:
 
-        temp_file_path = os.path.join(app.config['TEMP_FOLDER'],
-                                      f'{os.urandom(16).hex()}.csv')
-        file.save(temp_file_path)
+            temp_file_path = os.path.join(app.config['TEMP_FOLDER'],
+                                          f'{os.urandom(16).hex()}.csv')
+            file.save(temp_file_path)
 
-        get_moods_flag = request.form['get-moods']
-        get_genres_flag = request.form['get-genres']
+            get_moods_flag = request.form['get-moods']
+            get_genres_flag = request.form['get-genres']
 
-        if get_moods_flag == 'true':
-            make_predictions(temp_file_path, temp_file_path)
+            if get_moods_flag == 'true':
+                make_predictions(temp_file_path, temp_file_path)
 
-        if get_genres_flag == 'true':
-            genres_path = os.path.join(app.config['TEMP_FOLDER'], f'{os.urandom(16).hex()}.csv')
-            fetch_genres(temp_file_path, genres_path)
-            temp_file_path = genres_path
+            if get_genres_flag == 'true':
+                genres_path = os.path.join(app.config['TEMP_FOLDER'], f'{os.urandom(16).hex()}.csv')
+                fetch_genres(temp_file_path, genres_path)
+                temp_file_path = genres_path
 
-        with open(temp_file_path, 'r', encoding='utf-8') as csvfile:
-            csvreader = csv.DictReader(csvfile)
+            with open(temp_file_path, 'r', encoding='utf-8') as csvfile:
+                csvreader = csv.DictReader(csvfile)
 
-            first_row = next(csvreader)
+                first_row = next(csvreader)
 
-            if get_moods_flag == 'false' and any(
-                    col not in first_row for col in ['happy', 'sad', 'calm', 'aggressive']):
-                raise Exception('"Predict moods" flag is not set but mood columns are missing in the CSV file.')
+                if get_moods_flag == 'false' and any(
+                        col not in first_row for col in ['happy', 'sad', 'calm', 'aggressive']):
+                    raise Exception('"Predict moods" flag is not set but mood columns are missing in the CSV file.')
 
-            elif get_genres_flag == 'false' and any(col not in first_row for col in ['genre']):
-                raise Exception('"Get genres" flag is not set but "genre" column is missing in the CSV file.')
+                elif get_genres_flag == 'false' and any(col not in first_row for col in ['genre']):
+                    raise Exception('"Get genres" flag is not set but "genre" column is missing in the CSV file.')
 
-            elif get_genres_flag == 'false' and any(col not in first_row for col in ['name', 'album', 'artists']):
-                raise Exception('"name", "album", "artists" columns are missing in the CSV file.')
+                elif get_genres_flag == 'false' and any(col not in first_row for col in ['name', 'album', 'artists']):
+                    raise Exception('"name", "album", "artists" columns are missing in the CSV file.')
 
-            csvfile.seek(0)
-            next(csvreader)
+                csvfile.seek(0)
+                next(csvreader)
 
-            for row in csvreader:
+                for row in csvreader:
 
-                if any(value == '' for value in row.values()):
-                    continue
-
-                if get_moods_flag == 'false':
-                    try:
-                        happy = float(row['happy'])
-                        sad = float(row['sad'])
-                        calm = float(row['calm'])
-                        aggressive = float(row['aggressive'])
-                        if happy + sad + calm + aggressive != 1.0:
-                            continue
-                    except ValueError:
+                    if any(value == '' for value in row.values()):
                         continue
 
-                artists_list = ast.literal_eval(row['artists'])
-                artists = ', '.join(artists_list)
-                genre_name = row['genre']
+                    if get_moods_flag == 'false':
+                        try:
+                            happy = float(row['happy'])
+                            sad = float(row['sad'])
+                            calm = float(row['calm'])
+                            aggressive = float(row['aggressive'])
+                            if happy + sad + calm + aggressive != 1.0:
+                                continue
+                        except ValueError:
+                            continue
 
-                genre = Genre.query.filter_by(name=genre_name).first()
-                if not genre:
-                    genre = Genre(name=genre_name)
-                    db.session.add(genre)
-                    db.session.commit()
+                    artists_list = ast.literal_eval(row['artists'])
+                    artists = ', '.join(artists_list)
+                    genre_name = row['genre']
 
-                song = Song(track_name=row['name'], album_name=row['album'], artist_name=artists,
-                            aggressive=row['aggressive'], calm=row['calm'],
-                            happy=row['happy'], sad=row['sad'], genre_id=genre.id)
-                db.session.add(song)
-                # yield f"Added song: {song.artist_name} - {song.track_name} to database. \n"
-                # yield "Added song to database. \n"
+                    genre = Genre.query.filter_by(name=genre_name).first()
+                    if not genre:
+                        genre = Genre(name=genre_name)
+                        db.session.add(genre)
+                        db.session.commit()
 
-        db.session.commit()
-        remove_temp_files(app.config['TEMP_FOLDER'])
-        return jsonify({'message': 'Data uploaded and processed successfully.'}), 200
+                    song = Song(track_name=row['name'], album_name=row['album'], artist_name=artists,
+                                aggressive=row['aggressive'], calm=row['calm'],
+                                happy=row['happy'], sad=row['sad'], genre_id=genre.id)
+                    db.session.add(song)
 
-    except Exception as e:
-        db.session.rollback()
-        app.logger.exception(f"Error processing CSV: {e}")
-        remove_temp_files(app.config['TEMP_FOLDER'])
-        return jsonify({'error': str(e)}), 500
+            db.session.commit()
+            remove_temp_files(app.config['TEMP_FOLDER'])
+            return jsonify({'message': 'Data uploaded and processed successfully.'}), 200
+
+        except Exception as e:
+            db.session.rollback()
+            app.logger.exception(f'Error processing CSV: {e}')
+            remove_temp_files(app.config['TEMP_FOLDER'])
+            return jsonify({'error': str(e)}), 500
+
+
+@app.after_request
+def refresh_expiring_jwts(response):
+    try:
+        exp_timestamp = get_jwt()["exp"]
+        now = datetime.now()
+        target_timestamp = datetime.timestamp(now + timedelta(minutes=30))
+        if target_timestamp > exp_timestamp:
+            access_token = create_access_token(identity=get_jwt_identity())
+            set_access_cookies(response, access_token)
+        return response
+    except (RuntimeError, KeyError):
+        return response
 
 
 def remove_temp_files(directory):
