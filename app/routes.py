@@ -20,12 +20,11 @@ def admin():
     return render_template('admin.html')
 
 
-@app.route('/get-songs', methods=['POST'])
+@app.route('/get-songs', methods=['GET'])
 def get_songs():
-    data = request.get_json()
-    genre_id = data['genre']
-    x = float(data['x'])
-    y = float(data['y'])
+    genre_id = request.args.get('genre')
+    x = float(request.args.get('x'))
+    y = float(request.args.get('y'))
 
     happy_prob = x * y
     aggressive_prob = (1 - x) * y
@@ -41,7 +40,7 @@ def get_songs():
              .filter(Song.calm.between(calm_prob - threshold, calm_prob + threshold))
              .all())
 
-    while len(songs) < 20:
+    while len(songs) < 20 and threshold <= 1:
         threshold += 0.01
         songs = (Song.query
                  .filter(Song.genre_id == genre_id)
