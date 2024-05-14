@@ -1,5 +1,5 @@
 from flask import render_template, request, jsonify, make_response, redirect, url_for
-from app import app, db
+from app import app, db, socketio
 from app.models import Song, Genre, Admin
 import random
 import os
@@ -99,6 +99,8 @@ def get_songs():
 def process_csv_and_push_to_database():
     file = request.files.get('file')
 
+    socketio.emit('in-progress', True)
+
     if file is None or file.filename == '':
         return jsonify({'error': 'No file uploaded.'}), 500
     filename = secure_filename(file.filename)
@@ -106,9 +108,7 @@ def process_csv_and_push_to_database():
         return jsonify({'error': f'Invalid file type: {filename}'}), 500
 
     current_user = get_jwt_identity()
-    print(current_user)
     if current_user is None:
-        print(current_user)
         return jsonify({'error': 'Authorization required.'}), 401
     else:
         try:
@@ -121,12 +121,18 @@ def process_csv_and_push_to_database():
             get_genres_flag = request.form['get-genres']
 
             if get_moods_flag == 'true':
+                socketio.emit('log_message', f'Making mood predictions...')
                 make_predictions(temp_file_path, temp_file_path)
+                socketio.emit('log_message', f'Finished making mood predictions.')
 
             if get_genres_flag == 'true':
                 genres_path = os.path.join(app.config['TEMP_FOLDER'], f'{os.urandom(16).hex()}.csv')
+                socketio.emit('log_message', f'Fetching genres...')
                 fetch_genres(temp_file_path, genres_path)
+                socketio.emit('log_message', f'Finished fetching genres.')
                 temp_file_path = genres_path
+
+            songs_added_count = 0
 
             with open(temp_file_path, 'r', encoding='utf-8') as csvfile:
                 csvreader = csv.DictReader(csvfile)
@@ -170,21 +176,28 @@ def process_csv_and_push_to_database():
                     if not genre:
                         genre = Genre(name=genre_name)
                         db.session.add(genre)
-                        db.session.commit()
+                        # db.session.commit()
+                        socketio.emit('log_message', f'Added genre: "{genre_name}" to database.')
 
                     song = Song(track_name=row['name'], album_name=row['album'], artist_name=artists,
                                 aggressive=row['aggressive'], calm=row['calm'],
                                 happy=row['happy'], sad=row['sad'], genre_id=genre.id)
                     db.session.add(song)
+                    songs_added_count += 1
 
+            socketio.emit('log_message', f'{songs_added_count} songs were added to database.')
             db.session.commit()
             remove_temp_files(app.config['TEMP_FOLDER'])
+            socketio.emit('log_message', 'New data was committed to database.')
+            socketio.emit('in-progress', False)
             return jsonify({'message': 'Data uploaded and processed successfully.'}), 200
 
         except Exception as e:
             db.session.rollback()
             app.logger.exception(f'Error processing CSV: {e}')
+            socketio.emit('log_message', f'Error processing CSV: {e}')
             remove_temp_files(app.config['TEMP_FOLDER'])
+            socketio.emit('in-progress', False)
             return jsonify({'error': str(e)}), 500
 
 

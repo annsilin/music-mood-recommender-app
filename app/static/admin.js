@@ -2,6 +2,12 @@ const dropArea = document.getElementById('drop-area');
 const fileInput = document.getElementById('file-input');
 const uploadBtn = document.getElementById('upload-btn');
 const message = document.getElementById('message');
+const getMoodsCheckbox = document.getElementById('get-moods');
+const getGenresCheckbox = document.getElementById('get-genres');
+
+const socket = io();
+
+console.log(socket);
 
 const handleDragOver = (e) => {
     e.preventDefault();
@@ -45,15 +51,9 @@ const uploadFile = async () => {
     const formData = new FormData();
     formData.append('file', file);
 
-    const getMoodsCheckbox = document.getElementById('get-moods');
-    const getGenresCheckbox = document.getElementById('get-genres');
-
     formData.append('get-moods', getMoodsCheckbox.checked);
     formData.append('get-genres', getGenresCheckbox.checked);
 
-    uploadBtn.disabled = true;
-    getMoodsCheckbox.disabled = true;
-    getGenresCheckbox.disabled = true;
     message.textContent = 'Uploading...';
 
     try {
@@ -71,18 +71,12 @@ const uploadFile = async () => {
         if (response.ok) {
             message.textContent = data.message;
             fileInput.value = '';
-            uploadBtn.disabled = true;
-            getMoodsCheckbox.disabled = false;
-            getGenresCheckbox.disabled = false;
         } else {
             throw new Error(`${data.error}`)
         }
     } catch (error) {
         console.error('Error uploading file:', error.message);
         message.textContent = `Error uploading file: ${error.message}`;
-        uploadBtn.disabled = false;
-        getMoodsCheckbox.disabled = false;
-        getGenresCheckbox.disabled = false;
     }
 };
 
@@ -93,3 +87,26 @@ dropArea.addEventListener('drop', handleDrop);
 fileInput.addEventListener('change', handleInputChange);
 uploadBtn.addEventListener('click', uploadFile);
 
+socket.on('log_message', (message) => {
+    console.log(message)
+    const logContainer = document.getElementById('log');
+    logContainer.innerHTML += '<p>' + message + '</p>';
+});
+
+const changeUI = (status) => {
+    if (status) {
+        fileInput.disabled = true;
+        uploadBtn.disabled = true;
+        getMoodsCheckbox.disabled = true;
+        getGenresCheckbox.disabled = true;
+    } else {
+        uploadBtn.disabled = true;
+        fileInput.disabled = false;
+        getMoodsCheckbox.disabled = false;
+        getGenresCheckbox.disabled = false;
+    }
+}
+
+socket.on('in-progress', (status) => {
+    changeUI(status);
+});
