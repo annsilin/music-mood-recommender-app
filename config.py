@@ -9,5 +9,6 @@ class Config:
     JWT_ACCESS_CSRF_HEADER_NAME = 'X-CSRF-TOKEN'
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, 'database.db')
+    FLASK_RUN_PORT = int(os.environ.get('FLASK_RUN_PORT', 5000))
     ALLOWED_EXTENSIONS = {'csv'}
     TEMP_FOLDER = os.path.join(basedir, 'process_songs/temp_files')
