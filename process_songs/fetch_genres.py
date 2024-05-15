@@ -94,16 +94,11 @@ def resolve_genres(tags, whitelist=None, genre_tree=None, count=1, separator=", 
 
         # Filter and format allowed genres
         genres.extend(
-            [format_tag(t) for t in all_tags if is_allowed_genre(t, whitelist) and format_tag(t) not in genres]
+            [t.lower() for t in all_tags if is_allowed_genre(t, whitelist) and t.lower() not in genres]
         )
 
     # Limit genres to count and join with separator
     return separator.join(genres[:count])
-
-
-def format_tag(tag):
-    """Formats a tag (always lowercase)."""
-    return tag.lower()
 
 
 def fetch_genre_from_lastfm(network, artist_name, track_name, album_name, whitelist, genre_tree, min_weight=1):
@@ -142,7 +137,7 @@ def fetch_genre_from_lastfm(network, artist_name, track_name, album_name, whitel
         return None
 
 
-def fetch_genres_from_csv(network, filename, output_filename, whitelist, genre_tree):
+def fetch_genres_from_csv_helper(network, filename, output_filename, whitelist, genre_tree):
     """
     Fetches genres from Last.fm for songs in a CSV and writes to a new CSV.
 
@@ -192,10 +187,22 @@ def initialize_lastfm_network():
     return pylast.LastFMNetwork(api_key=api_key, api_secret=api_secret)
 
 
-def fetch_genres(input_path, output_path):
+def fetch_genres_from_csv(input_path, output_path):
     whitelist = load_whitelist()
     genre_tree = load_genre_tree()
 
     network = initialize_lastfm_network()
 
-    fetch_genres_from_csv(network, input_path, output_path, whitelist, genre_tree)
+    fetch_genres_from_csv_helper(network, input_path, output_path, whitelist, genre_tree)
+
+
+def fetch_genres(track_name, artist_name, album_name):
+    whitelist = load_whitelist()
+    genre_tree = load_genre_tree()
+
+    network = initialize_lastfm_network()
+
+    genres = fetch_genre_from_lastfm(network, artist_name, track_name, album_name, whitelist=whitelist,
+                                     genre_tree=genre_tree)
+
+    return genres

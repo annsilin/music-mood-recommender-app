@@ -123,11 +123,6 @@ def process_csv_and_push_to_database():
             if get_moods_flag == 'true':
                 make_predictions(temp_file_path, temp_file_path)
 
-            if get_genres_flag == 'true':
-                genres_path = os.path.join(app.config['TEMP_FOLDER'], f'{os.urandom(16).hex()}.csv')
-                fetch_genres(temp_file_path, genres_path)
-                temp_file_path = genres_path
-
             with open(temp_file_path, 'r', encoding='utf-8') as csvfile:
                 csvreader = csv.DictReader(csvfile)
 
@@ -164,7 +159,12 @@ def process_csv_and_push_to_database():
 
                     artists_list = ast.literal_eval(row['artists'])
                     artists = ', '.join(artists_list)
-                    genre_name = row['genre']
+
+                    if get_genres_flag == 'true':
+                        genre_name = fetch_genres(row['name'], artists_list[0], row['album'])
+
+                    if not genre_name:
+                        continue
 
                     genre = Genre.query.filter_by(name=genre_name).first()
                     if not genre:
