@@ -180,11 +180,7 @@
 }
 
 .songs-list__item {
-    display: flex;
-    flex-direction: column;
     list-style-type: none;
-    justify-content: flex-start;
-    gap: 8px;
 }
 
 .songs-list__item::after {
@@ -193,12 +189,28 @@
     width: 100%;
     height: 1px;
     background-color: #7B7B7B;
-    margin-top: 20px;
+    margin-top: 28px;
     margin-bottom: 28px;
 }
 
 .songs-list__item:last-child::after {
     display: none;
+}
+
+.songs-list__container {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    width: 100%;
+
+}
+
+.songs-list__artist-track {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 8px;
+    width: 100%;
 }
 
 .songs-list__artist {
@@ -215,24 +227,30 @@
     color: #FFFFFF;
 }
 
+.songs-list__cover {
+    width: 64px;
+    height: 64px;
+    border-radius: 5%;
+}
+
 .loading-animation {
-  display: none;
-  width: 200px;
-  height: 200px;
-  border: 30px solid #bdbdbd;
-  border-top: 30px solid #59447c;
-  border-radius: 100%;
-  margin: auto;
-  animation: spin 1s infinite linear;
+    display: none;
+    width: 200px;
+    height: 200px;
+    border: 30px solid #bdbdbd;
+    border-top: 30px solid #59447c;
+    border-radius: 100%;
+    margin: auto;
+    animation: spin 1s infinite linear;
 }
 
 @keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 @media (max-width: 1024px) {
