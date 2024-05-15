@@ -9,25 +9,155 @@
 </head>
 <body>
 <main>
-    <form action="#" class="upload-form">
-        <div id="drop-area">
-            <p>Выберите или перетащите CSV файл</p>
-            <input type="file" id="file-input" accept=".csv">
+    <div class="wrapper">
+
+        <div class="upload">
+            <form action="#" class="upload-form">
+                <div id="drop-area">
+                    <p>Выберите или перетащите CSV файл</p>
+                    <input type="file" id="file-input" accept=".csv">
+                </div>
+                <label>
+                    <input type="checkbox" name="get-moods" id="get-moods">
+                    Определять вероятности настроений
+                </label>
+                <label>
+                    <input type="checkbox" name="get-genres" id="get-genres">
+                    Определять жанры
+                </label>
+                <button id="upload-btn" disabled>Upload</button>
+            </form>
+
+            <div id="log"></div>
         </div>
-        <label>
-            <input type="checkbox" name="get-moods" id="get-moods">
-            Определять вероятности настроений
-        </label>
-        <label>
-            <input type="checkbox" name="get-genres" id="get-genres">
-            Определять жанры
-        </label>
-        <button id="upload-btn" disabled>Upload</button>
-    </form>
-    <p id="message"></p>
 
-    <div id="log"></div>
+        <div class="instructions">
+            <p>Для добавления треков в БД загрузите CSV файл со следующими столбцами: <br> Строки с пустыми значениями будут проигнорированы.</p>
 
+            <table>
+                <thead>
+                <tr>
+                    <th>Имя столбца</th>
+                    <th>Пример значения</th>
+                    <th>Описание</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>name</td>
+                    <td>Why (feat. Terry Ilous)</td>
+                    <td>Название трека</td>
+                </tr>
+                <tr>
+                    <td>artists</td>
+                    <td>['Morano', 'Terry Ilous']</td>
+                    <td>Список исполнителей</td>
+                </tr>
+                <tr>
+                    <td>album</td>
+                    <td>Incognito</td>
+                    <td>Название альбома</td>
+                </tr>
+                <tbody class="table-block_features" hidden>
+                <tr>
+                    <td>danceability</td>
+                    <td>0.595</td>
+                    <td>Танцевальность</td>
+                </tr>
+                <tr>
+                    <td>energy</td>
+                    <td>0.78</td>
+                    <td>Энергичность</td>
+                </tr>
+                <tr>
+                    <td>key</td>
+                    <td>2</td>
+                    <td>Высота звука</td>
+                </tr>
+                <tr>
+                    <td>loudness</td>
+                    <td>-5.843</td>
+                    <td>Громкость</td>
+                </tr>
+                <tr>
+                    <td>mode</td>
+                    <td>1</td>
+                    <td>Лад</td>
+                </tr>
+                <tr>
+                    <td>speechiness</td>
+                    <td>0.034</td>
+                    <td>Обильность речи</td>
+                </tr>
+                <tr>
+                    <td>acousticness</td>
+                    <td>0.000478</td>
+                    <td>Акустичность</td>
+                </tr>
+                <tr>
+                    <td>instrumentalness</td>
+                    <td>0.0</td>
+                    <td>Инструментальность</td>
+                </tr>
+                <tr>
+                    <td>liveness</td>
+                    <td>0.0514</td>
+                    <td>Живость</td>
+                </tr>
+                <tr>
+                    <td>valence</td>
+                    <td>0.413</td>
+                    <td>Валентность</td>
+                </tr>
+                <tr>
+                    <td>tempo</td>
+                    <td>118.043</td>
+                    <td>Темп</td>
+                </tr>
+                <tr>
+                    <td>duration_ms</td>
+                    <td>284267</td>
+                    <td>Продолжительность</td>
+                </tr>
+                <tr>
+                    <td>time_signature</td>
+                    <td>4</td>
+                    <td>Тактовый размер</td>
+                </tr>
+                </tbody>
+                <tbody class="table-block_predictions">
+                <tr>
+                    <td>aggressive</td>
+                    <td>0.0373189514496802</td>
+                    <td>Вероятность принадлежности<br>к настроению "агрессивное"</td>
+                </tr>
+                <tr>
+                    <td>calm</td>
+                    <td>0.0191142229735873</td>
+                    <td>Вероятность принадлежности<br>к настроению "спокойное"</td>
+                </tr>
+                <tr>
+                    <td>happy</td>
+                    <td>0.853636134655076</td>
+                    <td>Вероятность принадлежности <br>к настроению "счастливое"</td>
+                </tr>
+                <tr>
+                    <td>sad</td>
+                    <td>0.0899306909216564</td>
+                    <td>Вероятность принадлежности<br>к настроению "грустное"</td>
+                </tr>
+                </tbody>
+                <tbody class="table-block_genre">
+                <tr>
+                    <td>genre</td>
+                    <td>rock</td>
+                    <td>Жанр</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
 </main>
 
 <script defer src="../static/admin.js"></script>

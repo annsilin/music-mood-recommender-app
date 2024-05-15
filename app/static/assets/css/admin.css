@@ -1,9 +1,28 @@
+table, th, td  {
+    border: 1px solid #000000;
+    border-collapse: collapse;
+}
+
+table {
+    width: 500px;
+}
+
+td {
+    padding: 2px;
+}
+
+.wrapper {
+    display: flex;
+    gap: 40px;
+    font-family: sans-serif;
+}
+
 .upload-form {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 10px;
-    font-family: sans-serif;
+    margin: 16px;
 }
 
 #drop-area {
@@ -13,7 +32,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    border: 2px dashed #ccc;
+    border: 2px dashed #CCCCCC;
     border-radius: 20px;
     text-align: center;
 }
@@ -39,4 +58,18 @@
 #message {
     margin-top: 10px;
     color: green;
+    font-family: monospace;
+    margin-left: 16px;
+}
+
+#log {
+    box-sizing: border-box;
+    width: 400px;
+    height: 150px;
+    margin-left: 16px;
+    padding: 10px;
+    border: 1px solid #CCCCCC;
+    background: #f1f1f1;
+    overflow-y: scroll;
+    font-family: monospace;
 }
