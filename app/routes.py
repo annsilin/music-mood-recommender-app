@@ -110,82 +110,82 @@ def process_csv_and_push_to_database():
     if current_user is None:
         print(current_user)
         return jsonify({'error': 'Authorization required.'}), 401
-    else:
-        try:
 
-            temp_file_path = os.path.join(app.config['TEMP_FOLDER'],
-                                          f'{os.urandom(16).hex()}.csv')
-            file.save(temp_file_path)
+    try:
 
-            get_moods_flag = request.form['get-moods']
-            get_genres_flag = request.form['get-genres']
+        temp_file_path = os.path.join(app.config['TEMP_FOLDER'],
+                                      f'{os.urandom(16).hex()}.csv')
+        file.save(temp_file_path)
 
-            if get_moods_flag == 'true':
-                make_predictions(temp_file_path, temp_file_path)
+        get_moods_flag = request.form['get-moods']
+        get_genres_flag = request.form['get-genres']
 
-            with open(temp_file_path, 'r', encoding='utf-8') as csvfile:
-                csvreader = csv.DictReader(csvfile)
+        if get_moods_flag == 'true':
+            make_predictions(temp_file_path, temp_file_path)
 
-                first_row = next(csvreader)
+        with open(temp_file_path, 'r', encoding='utf-8') as csvfile:
+            csvreader = csv.DictReader(csvfile)
 
-                if get_moods_flag == 'false' and any(
-                        col not in first_row for col in ['happy', 'sad', 'calm', 'aggressive']):
-                    raise Exception('"Predict moods" flag is not set but mood columns are missing in the CSV file.')
+            first_row = next(csvreader)
 
-                elif get_genres_flag == 'false' and any(col not in first_row for col in ['genre']):
-                    raise Exception('"Get genres" flag is not set but "genre" column is missing in the CSV file.')
+            if get_moods_flag == 'false' and any(
+                    col not in first_row for col in ['happy', 'sad', 'calm', 'aggressive']):
+                raise Exception('"Predict moods" flag is not set but mood columns are missing in the CSV file.')
 
-                elif get_genres_flag == 'false' and any(col not in first_row for col in ['name', 'album', 'artists']):
-                    raise Exception('"name", "album", "artists" columns are missing in the CSV file.')
+            elif get_genres_flag == 'false' and any(col not in first_row for col in ['genre']):
+                raise Exception('"Get genres" flag is not set but "genre" column is missing in the CSV file.')
 
-                csvfile.seek(0)
-                next(csvreader)
+            elif get_genres_flag == 'false' and any(col not in first_row for col in ['name', 'album', 'artists']):
+                raise Exception('"name", "album", "artists" columns are missing in the CSV file.')
 
-                for row in csvreader:
+            csvfile.seek(0)
+            next(csvreader)
 
-                    if any(value == '' for value in row.values()):
-                        continue
+            for row in csvreader:
 
-                    if get_moods_flag == 'false':
-                        try:
-                            happy = float(row['happy'])
-                            sad = float(row['sad'])
-                            calm = float(row['calm'])
-                            aggressive = float(row['aggressive'])
-                            if happy + sad + calm + aggressive != 1.0:
-                                continue
-                        except ValueError:
+                if any(value == '' for value in row.values()):
+                    continue
+
+                if get_moods_flag == 'false':
+                    try:
+                        happy = float(row['happy'])
+                        sad = float(row['sad'])
+                        calm = float(row['calm'])
+                        aggressive = float(row['aggressive'])
+                        if happy + sad + calm + aggressive != 1.0:
                             continue
-
-                    artists_list = ast.literal_eval(row['artists'])
-                    artists = ', '.join(artists_list)
-
-                    if get_genres_flag == 'true':
-                        genre_name = fetch_genres(row['name'], artists_list[0], row['album'])
-
-                    if not genre_name:
+                    except ValueError:
                         continue
 
-                    genre = Genre.query.filter_by(name=genre_name).first()
-                    if not genre:
-                        genre = Genre(name=genre_name)
-                        db.session.add(genre)
-                        db.session.commit()
+                artists_list = ast.literal_eval(row['artists'])
+                artists = ', '.join(artists_list)
 
-                    song = Song(track_name=row['name'], album_name=row['album'], artist_name=artists,
-                                aggressive=row['aggressive'], calm=row['calm'],
-                                happy=row['happy'], sad=row['sad'], genre_id=genre.id)
-                    db.session.add(song)
+                if get_genres_flag == 'true':
+                    genre_name = fetch_genres(row['name'], artists_list[0], row['album'])
 
-            db.session.commit()
-            remove_temp_files(app.config['TEMP_FOLDER'])
-            return jsonify({'message': 'Data uploaded and processed successfully.'}), 200
+                if not genre_name:
+                    continue
 
-        except Exception as e:
-            db.session.rollback()
-            app.logger.exception(f'Error processing CSV: {e}')
-            remove_temp_files(app.config['TEMP_FOLDER'])
-            return jsonify({'error': str(e)}), 500
+                genre = Genre.query.filter_by(name=genre_name).first()
+                if not genre:
+                    genre = Genre(name=genre_name)
+                    db.session.add(genre)
+                    db.session.commit()
+
+                song = Song(track_name=row['name'], album_name=row['album'], artist_name=artists,
+                            aggressive=row['aggressive'], calm=row['calm'],
+                            happy=row['happy'], sad=row['sad'], genre_id=genre.id)
+                db.session.add(song)
+
+        db.session.commit()
+        remove_temp_files(app.config['TEMP_FOLDER'])
+        return jsonify({'message': 'Data uploaded and processed successfully.'}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.exception(f'Error processing CSV: {e}')
+        remove_temp_files(app.config['TEMP_FOLDER'])
+        return jsonify({'error': str(e)}), 500
 
 
 @app.after_request

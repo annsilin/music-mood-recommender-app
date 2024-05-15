@@ -284,3 +284,5 @@ dist
 .pnp.*
 .idea/
 database.db
+database.db-journal
+process_songs/temp_files/*
