@@ -18,7 +18,7 @@ class Song(db.Model):
     album_cover_url: so.Mapped[Optional[str]] = so.mapped_column(sa.String(255), nullable=True)
 
     __table_args__ = (
-        sa.UniqueConstraint('artist_name', 'album_name', 'track_name'),
+        sa.UniqueConstraint('artist_name', 'album_name', 'track_name', name='uq_artist_album_track'),
     )
 
     def __repr__(self):
