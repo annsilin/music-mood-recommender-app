@@ -17,6 +17,10 @@ class Song(db.Model):
     genre_id: so.Mapped[int] = so.mapped_column(sa.Integer, sa.ForeignKey('genre.id'))
     album_cover_url: so.Mapped[Optional[str]] = so.mapped_column(sa.String(255), nullable=True)
 
+    __table_args__ = (
+        sa.UniqueConstraint('artist_name', 'album_name', 'track_name'),
+    )
+
     def __repr__(self):
         return f"{self.artist_name} - {self.track_name}"
 
