@@ -29,6 +29,10 @@ class Genre(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     name: so.Mapped[str] = so.mapped_column(sa.String(64))
 
+    __table_args__ = (
+        sa.UniqueConstraint('name', name='uq_genre'),
+    )
+
     def __repr__(self):
         return f"{self.name}"
 

@@ -1,3 +1,5 @@
+from sqlalchemy.exc import IntegrityError
+
 from process_songs import fetch_genres, make_predictions, fetch_album_cover
 import csv
 import ast
@@ -73,8 +75,14 @@ def process_csv_and_push_to_database_bg(temp_file_path, get_moods_flag, get_genr
                     genre = Genre.query.filter_by(name=genre_name).first()
                     if not genre:
                         genre = Genre(name=genre_name)
-                        db.session.add(genre)
-                        db.session.commit()
+
+                        try:
+                            db.session.add(genre)
+                            db.session.commit()
+                        except IntegrityError:
+                            db.session.rollback()
+                            app.logger.warning(f"Skipping insertion of duplicate genre: {genre}")
+                            continue
 
                     if get_album_covers_flag == 'true':
                         album_cover_url = fetch_album_cover(artists_list[0], row['album'])
@@ -84,13 +92,18 @@ def process_csv_and_push_to_database_bg(temp_file_path, get_moods_flag, get_genr
                     song = Song(track_name=row['name'], album_name=row['album'], artist_name=artists,
                                 aggressive=row['aggressive'], calm=row['calm'],
                                 happy=row['happy'], sad=row['sad'], genre_id=genre.id, album_cover_url=album_cover_url)
-                    db.session.add(song)
+                    try:
+                        db.session.add(song)
+                        db.session.commit()
+                    except IntegrityError:
+                        db.session.rollback()
+                        app.logger.warning(f"Skipping insertion of duplicate song: {song}")
+                        continue
 
                     processed_rows += 1
                     job.meta['progress'] = processed_rows / total_rows * 100
                     job.save_meta()
 
-            db.session.commit()
             if temp_file_path:
                 os.remove(temp_file_path)
 
