@@ -12,3 +12,4 @@ class Config:
     FLASK_RUN_PORT = int(os.environ.get('FLASK_RUN_PORT', 5000))
     ALLOWED_EXTENSIONS = {'csv'}
     TEMP_FOLDER = os.path.join(basedir, 'process_songs/temp_files')
+    MAX_QUEUE_BG_JOBS = 10

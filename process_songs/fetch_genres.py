@@ -5,7 +5,6 @@ import yaml
 import csv
 from collections import OrderedDict
 import os
-from dotenv import load_dotenv
 
 
 current_directory = os.path.dirname(os.path.abspath(__file__))
@@ -177,12 +176,11 @@ def fetch_genres_from_csv_helper(network, filename, output_filename, whitelist, 
 
 
 def initialize_lastfm_network():
-    load_dotenv('../.env')
-    api_key = os.getenv("LASTFM_API_KEY")
-    api_secret = os.getenv("LASTFM_API_SECRET")
+    api_key = os.environ.get("LASTFM_API_KEY")
+    api_secret = os.environ.get("LASTFM_API_SECRET")
 
     if api_key is None or api_secret is None:
-        raise ValueError("API_KEY and API_SECRET must be provided in the .env file.")
+        raise ValueError("LASTFM_API_KEY and LASTFM_API_SECRET must be provided as OS environment variables.")
 
     return pylast.LastFMNetwork(api_key=api_key, api_secret=api_secret)
 

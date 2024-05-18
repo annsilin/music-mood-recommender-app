@@ -13,7 +13,7 @@
 
         <div class="upload">
             <form action="#" class="upload-form">
-                <div id="drop-area">
+                <div class="drop-area">
                     <p>Выберите или перетащите CSV файл</p>
                     <input type="file" id="file-input" accept=".csv">
                 </div>
@@ -25,14 +25,23 @@
                     <input type="checkbox" name="get-genres" id="get-genres">
                     Определять жанры
                 </label>
-                <button id="upload-btn" disabled>Upload</button>
+                <button class="upload-btn btn" disabled>Загрузить</button>
             </form>
 
-            <div id="log"></div>
+            <div class="log"></div>
+
+            <button class="get-jobs-btn btn">Статус фоновых задач</button>
+            <div class="delete-job-wrapper">
+                <label>
+                    <input type="text" id="delete-job" placeholder="Redis job ID to delete">
+                </label>
+                <button class="delete-job-btn btn">Удалить задачу</button>
+            </div>
         </div>
 
         <div class="instructions">
-            <p>Для добавления треков в БД загрузите CSV файл со следующими столбцами: <br> Строки с пустыми значениями будут проигнорированы.</p>
+            <p>Для добавления треков в БД загрузите CSV файл со следующими столбцами: <br> Строки с пустыми значениями
+                будут проигнорированы.</p>
 
             <table>
                 <thead>
@@ -158,6 +167,7 @@
         </div>
 
     </div>
+
 </main>
 
 <script defer src="../static/admin.js"></script>

@@ -1,7 +1,7 @@
-const dropArea = document.getElementById('drop-area');
+const dropArea = document.querySelector('.drop-area');
 const fileInput = document.getElementById('file-input');
-const uploadBtn = document.getElementById('upload-btn');
-const logs = document.getElementById('log');
+const uploadBtn = document.querySelector('.upload-btn');
+const logs = document.querySelector('.log');
 const getMoodsCheckbox = document.getElementById('get-moods');
 const getGenresCheckbox = document.getElementById('get-genres');
 
@@ -107,3 +107,72 @@ getGenresCheckbox.addEventListener('change', (e) => {
         document.querySelector('.table-block_genre').removeAttribute('hidden');
     }
 })
+
+const fetchBackgroundJobs = async () => {
+  try {
+    const response = await fetch("/all-jobs");
+    const data = await response.json();
+
+    if (data.message === "No jobs found.") {
+      document.querySelector(".log").innerHTML = "No jobs found.";
+      return;
+    }
+
+    document.querySelector(".log").innerHTML = "";
+    data.forEach((job) => {
+      const jobElement = document.createElement("div");
+      jobElement.innerHTML = `
+          <p><strong>ID:</strong> ${job.id || "N/A"}</p>
+          <p><strong>Function:</strong> ${job.function || "N/A"}</p>
+          <p><strong>Status:</strong> ${job.status || "N/A"}</p>
+          <p><strong>Created At:</strong> ${job.created_at || "N/A"}</p>
+          <p><strong>Started At:</strong> ${job.started_at || "N/A"}</p>
+          <p><strong>Progress:</strong> ${job.meta && job.meta.progress ? job.meta.progress + "%" : "N/A"}</p>
+          <hr>
+      `;
+      document.querySelector(".log").appendChild(jobElement);
+    });
+  } catch (error) {
+    console.error("Error fetching active jobs:", error);
+  }
+}
+
+
+const getJobsBtn = document.querySelector('.get-jobs-btn');
+getJobsBtn.addEventListener('click', fetchBackgroundJobs);
+
+const deleteJobBtn = document.querySelector('.delete-job-btn');
+
+deleteJobBtn.addEventListener('click', () => {
+    const jobID = document.getElementById('delete-job').value;
+    deleteJob(jobID);
+});
+
+const deleteJob = async (jobID) => {
+        const queryParams = new URLSearchParams({
+        job_id: jobID,
+    });
+    const url = `/delete-job?${queryParams.toString()}`;
+    try {
+        const response = await fetch(url, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': getCookie('csrf_access_token'),
+            },
+            credentials: 'include',
+        });
+        const data = await response.json();
+
+
+        if (response.ok) {
+            document.querySelector(".log").innerHTML = `${data.message}`;
+            document.getElementById('delete-job').value = '';
+        } else {
+            throw new Error (`${data.error}`);
+        }
+    } catch (error) {
+        console.error('Error deleting job:', error);
+        document.querySelector(".log").innerHTML = `${error.message}`
+    }
+}
