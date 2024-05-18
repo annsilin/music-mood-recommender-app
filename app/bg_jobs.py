@@ -1,4 +1,4 @@
-from process_songs import fetch_genres, make_predictions
+from process_songs import fetch_genres, make_predictions, fetch_album_cover
 import csv
 import ast
 from rq import get_current_job
@@ -7,7 +7,7 @@ from app import app, db
 from app.models import Song, Genre
 
 
-def process_csv_and_push_to_database_bg(temp_file_path, get_moods_flag, get_genres_flag):
+def process_csv_and_push_to_database_bg(temp_file_path, get_moods_flag, get_genres_flag, get_album_covers_flag):
     with app.app_context():
         try:
 
@@ -76,9 +76,12 @@ def process_csv_and_push_to_database_bg(temp_file_path, get_moods_flag, get_genr
                         db.session.add(genre)
                         db.session.commit()
 
+                    if get_album_covers_flag == 'true':
+                        album_cover_url = fetch_album_cover(artists_list[0], row['album'])
+
                     song = Song(track_name=row['name'], album_name=row['album'], artist_name=artists,
                                 aggressive=row['aggressive'], calm=row['calm'],
-                                happy=row['happy'], sad=row['sad'], genre_id=genre.id)
+                                happy=row['happy'], sad=row['sad'], genre_id=genre.id, album_cover_url=album_cover_url)
                     db.session.add(song)
 
                     processed_rows += 1

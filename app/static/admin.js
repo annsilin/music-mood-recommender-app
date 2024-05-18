@@ -4,6 +4,7 @@ const uploadBtn = document.querySelector('.upload-btn');
 const logs = document.querySelector('.log');
 const getMoodsCheckbox = document.getElementById('get-moods');
 const getGenresCheckbox = document.getElementById('get-genres');
+const getAlbumCoversCheckbox = document.getElementById('get-genres');
 const getJobsBtn = document.querySelector('.get-jobs-btn');
 const deleteJobBtn = document.querySelector('.delete-job-btn');
 
@@ -60,6 +61,14 @@ getGenresCheckbox.addEventListener('change', (e) => {
         document.querySelector('.table-block_genre').setAttribute('hidden', 'true');
     } else {
         document.querySelector('.table-block_genre').removeAttribute('hidden');
+    }
+});
+
+getAlbumCoversCheckbox.addEventListener('change', (e) => {
+    if (e.target.checked) {
+        document.querySelector('.table-block_album-cover').setAttribute('hidden', 'true');
+    } else {
+        document.querySelector('.table-block_album-cover').removeAttribute('hidden');
     }
 });
 

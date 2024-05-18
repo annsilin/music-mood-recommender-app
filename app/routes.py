@@ -12,7 +12,6 @@ from rq.job import Job
 from rq.registry import StartedJobRegistry, FinishedJobRegistry, FailedJobRegistry
 
 
-
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -102,6 +101,7 @@ def process_csv_and_push_to_database():
     file = request.files.get('file')
     get_moods_flag = request.form['get-moods']
     get_genres_flag = request.form['get-genres']
+    get_album_covers_flag = request.form['get-album-covers']
 
     if file is None or file.filename == '':
         return jsonify({'error': 'No file uploaded.'}), 500
@@ -120,7 +120,8 @@ def process_csv_and_push_to_database():
     if len(queue) >= app.config['MAX_QUEUE_BG_JOBS']:
         return jsonify({'error': 'Queue full. Please try again later.'}), 503
 
-    job = queue.enqueue(process_csv_and_push_to_database_bg, temp_file_path, get_moods_flag, get_genres_flag)
+    job = queue.enqueue(process_csv_and_push_to_database_bg, temp_file_path, get_moods_flag, get_genres_flag,
+                        get_album_covers_flag)
 
     return jsonify({'message': 'Data processing job queued.', 'job_id': job.id}), 202
 
@@ -136,7 +137,8 @@ def get_all_jobs():
     failed_job_registry = FailedJobRegistry(queue=queue)
     failed_job_ids = failed_job_registry.get_job_ids()
 
-    all_job_ids = [job_id for job_id in (queued_job_ids + active_job_ids + finished_job_ids + failed_job_ids) if job_id is not None]
+    all_job_ids = [job_id for job_id in (queued_job_ids + active_job_ids + finished_job_ids + failed_job_ids) if
+                   job_id is not None]
 
     if not all_job_ids:
         return jsonify({'message': 'No jobs found.'}), 200

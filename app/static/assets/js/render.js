@@ -111,6 +111,7 @@ const fileUploadFormRender = (status) => {
         uploadBtn.disabled = true;
         getMoodsCheckbox.disabled = true;
         getGenresCheckbox.disabled = true;
+        getAlbumCoversCheckbox.disabled = true;
         logs.textContent = 'Uploading...';
     }
     if (status === 'upload-success') {
@@ -118,11 +119,13 @@ const fileUploadFormRender = (status) => {
         uploadBtn.disabled = true;
         getMoodsCheckbox.disabled = false;
         getGenresCheckbox.disabled = false;
+        getAlbumCoversCheckbox.disabled = false;
     }
     if (status === 'upload-error') {
         uploadBtn.disabled = false;
         getMoodsCheckbox.disabled = false;
         getGenresCheckbox.disabled = false;
+        getAlbumCoversCheckbox.disabled = false;
     }
 };
 

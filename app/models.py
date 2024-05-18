@@ -15,6 +15,7 @@ class Song(db.Model):
     sad: so.Mapped[float] = so.mapped_column(sa.Float, index=True)
     calm: so.Mapped[float] = so.mapped_column(sa.Float, index=True)
     genre_id: so.Mapped[int] = so.mapped_column(sa.Integer, sa.ForeignKey('genre.id'))
+    album_cover_url: so.Mapped[Optional[str]] = so.mapped_column(sa.String(255), nullable=True)
 
     def __repr__(self):
         return f"{self.artist_name} - {self.track_name}"

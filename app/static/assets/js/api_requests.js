@@ -86,6 +86,7 @@ const uploadFile = async () => {
     formData.append('file', file);
     formData.append('get-moods', getMoodsCheckbox.checked);
     formData.append('get-genres', getGenresCheckbox.checked);
+    formData.append('get-album-covers', getAlbumCoversCheckbox.checked);
 
     fileUploadFormRender('upload-start');
 
