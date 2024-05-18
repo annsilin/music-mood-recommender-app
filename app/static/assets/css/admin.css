@@ -70,3 +70,23 @@ td {
     overflow-y: scroll;
     font-family: monospace;
 }
+
+.jobs-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    box-sizing: border-box;
+    margin: 16px;
+}
+
+.delete-job-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#delete-job {
+    width: 230px;
+    height: 37px;
+    box-sizing: border-box;
+}

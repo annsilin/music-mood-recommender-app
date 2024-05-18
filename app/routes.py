@@ -86,10 +86,7 @@ def get_songs():
     serialized_songs = [{
         'artist_name': song.artist_name,
         'track_name': song.track_name,
-        'happy_prob': song.happy,
-        'aggressive_prob': song.aggressive,
-        'sad_prob': song.sad,
-        'calm_prob': song.calm,
+        'album_cover': song.album_cover_url,
     } for song in selected_songs]
 
     return jsonify(serialized_songs)

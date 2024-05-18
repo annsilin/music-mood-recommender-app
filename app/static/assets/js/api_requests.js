@@ -21,7 +21,6 @@ const fetchSongs = async (genre, normalizedX, normalizedY) => {
     } catch (error) {
         console.error('Error fetching songs:', error);
     } finally {
-        console.log(songs);
         stopLoadingAnimation();
         renderSongs(songs);
     }

@@ -4,7 +4,7 @@ const uploadBtn = document.querySelector('.upload-btn');
 const logs = document.querySelector('.log');
 const getMoodsCheckbox = document.getElementById('get-moods');
 const getGenresCheckbox = document.getElementById('get-genres');
-const getAlbumCoversCheckbox = document.getElementById('get-genres');
+const getAlbumCoversCheckbox = document.getElementById('get-album-covers');
 const getJobsBtn = document.querySelector('.get-jobs-btn');
 const deleteJobBtn = document.querySelector('.delete-job-btn');
 

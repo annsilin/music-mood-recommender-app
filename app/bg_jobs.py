@@ -78,6 +78,8 @@ def process_csv_and_push_to_database_bg(temp_file_path, get_moods_flag, get_genr
 
                     if get_album_covers_flag == 'true':
                         album_cover_url = fetch_album_cover(artists_list[0], row['album'])
+                    else:
+                        album_cover_url = row['album_cover']
 
                     song = Song(track_name=row['name'], album_name=row['album'], artist_name=artists,
                                 aggressive=row['aggressive'], calm=row['calm'],
