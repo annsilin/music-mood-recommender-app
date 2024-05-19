@@ -87,7 +87,7 @@ flask db upgrade
 Ensure the Redis server is running. You can start it using:
 
 ```bash
-redis-server
+sudo service redis-server start
 ```
 
 ### Start the Flask Application
