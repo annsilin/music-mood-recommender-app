@@ -6,15 +6,15 @@ from typing import Optional
 
 
 class Song(db.Model):
-    id: so.Mapped[int] = so.mapped_column(primary_key=True)
-    artist_name: so.Mapped[str] = so.mapped_column(sa.String(255))
-    album_name: so.Mapped[str] = so.mapped_column(sa.String(255))
-    track_name: so.Mapped[str] = so.mapped_column(sa.String(255))
-    happy: so.Mapped[float] = so.mapped_column(sa.Float, index=True)
-    aggressive: so.Mapped[float] = so.mapped_column(sa.Float, index=True)
-    sad: so.Mapped[float] = so.mapped_column(sa.Float, index=True)
-    calm: so.Mapped[float] = so.mapped_column(sa.Float, index=True)
-    genre_id: so.Mapped[int] = so.mapped_column(sa.Integer, sa.ForeignKey('genre.id'))
+    id: so.Mapped[int] = so.mapped_column(primary_key=True, nullable=False)
+    artist_name: so.Mapped[str] = so.mapped_column(sa.String(255), nullable=False)
+    album_name: so.Mapped[str] = so.mapped_column(sa.String(255), nullable=False)
+    track_name: so.Mapped[str] = so.mapped_column(sa.String(255), nullable=False)
+    happy: so.Mapped[float] = so.mapped_column(sa.Float, index=True, nullable=False)
+    aggressive: so.Mapped[float] = so.mapped_column(sa.Float, index=True, nullable=False)
+    sad: so.Mapped[float] = so.mapped_column(sa.Float, index=True, nullable=False)
+    calm: so.Mapped[float] = so.mapped_column(sa.Float, index=True, nullable=False)
+    genre_id: so.Mapped[int] = so.mapped_column(sa.Integer, sa.ForeignKey('genre.id'), nullable=False)
     album_cover_url: so.Mapped[Optional[str]] = so.mapped_column(sa.String(255), nullable=True)
 
     __table_args__ = (
@@ -26,8 +26,8 @@ class Song(db.Model):
 
 
 class Genre(db.Model):
-    id: so.Mapped[int] = so.mapped_column(primary_key=True)
-    name: so.Mapped[str] = so.mapped_column(sa.String(64))
+    id: so.Mapped[int] = so.mapped_column(primary_key=True, nullable=False)
+    name: so.Mapped[str] = so.mapped_column(sa.String(64), nullable=False)
 
     __table_args__ = (
         sa.UniqueConstraint('name', name='uq_genre'),
@@ -38,9 +38,9 @@ class Genre(db.Model):
 
 
 class Admin(db.Model):
-    id: so.Mapped[int] = so.mapped_column(sa.Integer, primary_key=True)
+    id: so.Mapped[int] = so.mapped_column(sa.Integer, primary_key=True, nullable=False)
     username: so.Mapped[str] = so.mapped_column(sa.String(50), unique=True, nullable=False)
-    password_hash: so.Mapped[Optional[str]] = so.mapped_column(sa.String(128), nullable=False)
+    password_hash: so.Mapped[Optional[str]] = so.mapped_column(sa.String(255), nullable=False)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
