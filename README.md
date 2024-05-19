@@ -31,7 +31,7 @@ On Windows:
 
 ```cmd
 python -m venv venv
-source venv\Scripts\activate
+.\venv\Scripts\activate
 ```
 
 ### Install Dependencies
