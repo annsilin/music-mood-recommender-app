@@ -287,3 +287,5 @@ database.db
 database.db-journal
 process_songs/temp_files/*
 dump.rdb
+venv-linux
+/venv-linux/
