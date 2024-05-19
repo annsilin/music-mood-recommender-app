@@ -65,7 +65,8 @@ set LASTFM_SECRET_KEY=your-lastfm-api-key
 Replace `username`, `password`, `localhost`, `5432`, and `yourdatabase` with your PostgreSQL credentials and database
 name.
 
-`LASTFM_API_KEY` and `LASTFM_SECRET_KEY` are needed in order to use functionality to fetch music genre and/or album cover using
+`LASTFM_API_KEY` and `LASTFM_SECRET_KEY` are needed in order to use functionality to fetch music genre and/or album
+cover using
 Last.fm API when adding songs to the database via admin UI. If you don't need this functionality, you can skip adding
 these variables, otherwise obtain your credentials from https://www.last.fm/en/api
 
@@ -105,6 +106,9 @@ rq worker
 ```
 
 ### Adding Admin user
+
+Admin user is needed in order to perform requests from admin UI on `<your_app_url>/admin` page. These requests include
+populating database from `.csv` table, monitoring statuses of background jobs and removing background jobs.
 
 Execute Flask CLI command to add admin user into the database:
 
