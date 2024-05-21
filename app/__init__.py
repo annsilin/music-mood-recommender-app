@@ -11,7 +11,7 @@ app.config.from_object(Config)
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 jwt = JWTManager(app)
-redis_conn = Redis()
+redis_conn = Redis(host=Config.REDIS_HOST, port=Config.REDIS_PORT)
 queue = Queue(connection=redis_conn, default_timeout=-1)
 
 

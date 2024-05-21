@@ -30,10 +30,11 @@ const fetchSongs = async (genre, normalizedX, normalizedY) => {
 /* Function to fetch genres from DB */
 const fetchGenres = async () => {
     try {
-        const genresResponse = await fetch('/get-genres');
-
-        const genres = await genresResponse.json();
-        renderGenres(genres);
+        const response = await fetch('/get-genres');
+        const data = await response.json();
+        if (response.ok) {
+            renderGenres(data);
+        }
     } catch (error) {
         console.error('Error fetching genres:', error);
     }
@@ -164,3 +165,16 @@ const deleteJob = async (jobID) => {
         document.querySelector(".log").innerHTML = `${error.message}`
     }
 }
+
+/* Function to fetch all songs by genre from DB */
+const fetchSongsByGenres = async () => {
+    try {
+        const response = await fetch('/get-all-songs-by-genre');
+        const songs = await response.json();
+        if (response.ok) {
+            renderSongsByGenre(songs);
+        }
+    } catch (error) {
+        console.error('Error fetching songs by genres:', error);
+    }
+};

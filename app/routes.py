@@ -1,6 +1,8 @@
 from flask import render_template, request, jsonify, make_response, redirect, url_for
 from rq.command import send_stop_job_command
-from app import app, redis_conn, queue
+from sqlalchemy import func
+
+from app import app, redis_conn, queue, db
 from app.models import Song, Genre, Admin
 from app.bg_jobs import process_csv_and_push_to_database_bg
 import random
@@ -174,6 +176,12 @@ def delete_job():
     try:
         job = Job.fetch(job_id, connection=redis_conn)
         if job.get_status() == 'started':
+
+            if job.func_name == 'app.bg_jobs.process_csv_and_push_to_database_bg':
+                temp_file_path = job.args[0]
+                if temp_file_path and os.path.exists(temp_file_path):
+                    os.remove(temp_file_path)
+
             send_stop_job_command(redis_conn, job_id)
             job.delete()
         else:
@@ -214,3 +222,20 @@ def get_genres():
     } for genre in genres]
 
     return jsonify(serialized_genres)
+
+
+@app.route('/get-all-songs-by-genre', methods=['GET'])
+@jwt_required()
+def get_songs_by_genre():
+    # Fetch songs grouped by genre
+    genre_counts = db.session.query(Genre.name, func.count(Song.id)).\
+        join(Song, Genre.id == Song.genre_id).\
+        group_by(Genre.name).\
+        all()
+
+    serialized_genre_counts = [{
+        'genre': genre,
+        'count': count
+    } for genre, count in genre_counts]
+
+    return jsonify(serialized_genre_counts)

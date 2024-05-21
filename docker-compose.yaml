@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - my_network
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_USER: music-mood-recommender-app
+      POSTGRES_PASSWORD: music-mood-recommender-app
+      POSTGRES_DB: music-mood-recommender-app
+    ports:
+      - "5432:5432"
+    networks:
+      - my_network
+
+  webapp:
+    build: .
+    container_name: music-mood-recommender-app
+    command: 
+      - /bin/bash
+      - -c
+      - |
+        flask db init 
+        flask db migrate 
+        flask db upgrade
+        rq worker &
+        flask run --host=0.0.0.0 --port=5000
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DATABASE_URL: postgresql://music-mood-recommender-app:music-mood-recommender-app@postgres:5432/music-mood-recommender-app
+      LASTFM_API_KEY: ${LASTFM_API_KEY}
+      LASTFM_API_SECRET: ${LASTFM_API_SECRET}
+    ports:
+      - "5000:5000"
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - my_network
+
+networks:
+  my_network:
+    driver: bridge
+

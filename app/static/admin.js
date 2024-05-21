@@ -7,6 +7,7 @@ const getGenresCheckbox = document.getElementById('get-genres');
 const getAlbumCoversCheckbox = document.getElementById('get-album-covers');
 const getJobsBtn = document.querySelector('.get-jobs-btn');
 const deleteJobBtn = document.querySelector('.delete-job-btn');
+const getSongsByGenreBtn = document.querySelector('.get-songs-by-genre-btn');
 
 
 const handleDragOver = (e) => {
@@ -79,3 +80,4 @@ deleteJobBtn.addEventListener('click', () => {
     deleteJob(jobID);
 });
 
+getSongsByGenreBtn.addEventListener('click', fetchSongsByGenres);

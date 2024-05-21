@@ -1,7 +1,7 @@
-from sqlalchemy.exc import IntegrityError
+import json
+from sqlalchemy.exc import IntegrityError, DataError
 from process_songs import fetch_genres, make_predictions, fetch_album_cover
 import csv
-import ast
 from rq import get_current_job
 import os
 from app import app, db
@@ -15,9 +15,10 @@ def process_csv_and_push_to_database_bg(temp_file_path, get_moods_flag, get_genr
             job.meta['progress'] = 0
             job.save_meta()
 
-            if os.name == 'posix':
-                temp_file_path = '/mnt/c' + temp_file_path[2:]
-                temp_file_path = temp_file_path.replace('\\', '/')
+            # Uncomment if you're running Flask app locally on Windows
+            # if os.name == 'posix':
+            #    temp_file_path = '/mnt/c' + temp_file_path[2:]
+            #    temp_file_path = temp_file_path.replace('\\', '/')
 
             if get_moods_flag == 'true':
                 make_predictions(temp_file_path, temp_file_path)
@@ -52,6 +53,11 @@ def process_csv_and_push_to_database_bg(temp_file_path, get_moods_flag, get_genr
                 next(csvreader)
 
                 for row in csvreader:
+
+                    processed_rows += 1
+                    job.meta['progress'] = processed_rows / total_rows * 100
+                    job.save_meta()
+
                     if any(value == '' and key != 'album_cover' for key, value in row.items()):
                         app.logger.warning(f"Skipping row with empty values (except album_cover): {row}")
                         continue
@@ -69,7 +75,7 @@ def process_csv_and_push_to_database_bg(temp_file_path, get_moods_flag, get_genr
                             app.logger.warning(f"Skipping row with invalid mood values: {row}")
                             continue
 
-                    artists_list = ast.literal_eval(row['artists'])
+                    artists_list = json.loads(row['artists'])
                     artists = ', '.join(artists_list)
 
                     if get_genres_flag == 'true':
@@ -105,14 +111,15 @@ def process_csv_and_push_to_database_bg(temp_file_path, get_moods_flag, get_genr
                     try:
                         db.session.add(song)
                         db.session.commit()
+                    except DataError as e:
+                        db.session.rollback()
+                        app.logger.warning(
+                            f"Skipping row due to data error (possibly field too long): {row}. Error: {e}")
+                        continue
                     except IntegrityError:
                         db.session.rollback()
                         app.logger.warning(f"Skipping insertion of duplicate song: {song}")
                         continue
-
-                    processed_rows += 1
-                    job.meta['progress'] = processed_rows / total_rows * 100
-                    job.save_meta()
 
             if temp_file_path:
                 os.remove(temp_file_path)

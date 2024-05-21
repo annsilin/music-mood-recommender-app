@@ -213,6 +213,14 @@
     width: 100%;
 }
 
+.songs-list__artist, .songs-list__track {
+    max-width: 70vw;
+    text-align: left;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
 .songs-list__artist {
     font-size: var(--font-size-small);
     font-weight: 500;
@@ -223,7 +231,6 @@
 .songs-list__track {
     font-size: var(--font-size-medium);
     font-weight: 500;
-    text-align: left;
     color: #FFFFFF;
 }
 

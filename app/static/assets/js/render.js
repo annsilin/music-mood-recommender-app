@@ -63,10 +63,27 @@ const createSongElement = (song) => {
     const songArtist = document.createElement('span');
     songArtist.classList.add('songs-list__artist');
     songArtist.textContent = song.artist_name;
+    songArtist.title = song.artist_name;
 
     const songName = document.createElement('span');
     songName.classList.add('songs-list__track');
     songName.textContent = song.track_name;
+    songName.title = song.track_name;
+
+    const addCopyEventListener = (element) => {
+        element.addEventListener('copy', (e) => {
+            e.preventDefault();
+            const fullText = element.getAttribute('title');
+            if (e.clipboardData) {
+                e.clipboardData.setData('text/plain', fullText);
+            } else if (window.clipboardData) {
+                window.clipboardData.setData('Text', fullText);
+            }
+        });
+    };
+
+    addCopyEventListener(songArtist);
+    addCopyEventListener(songName);
 
     artistTrackContainer.appendChild(songArtist);
     artistTrackContainer.appendChild(songName);
@@ -143,4 +160,15 @@ const renderJobStatus = (job) => {
           <hr>
       `;
     document.querySelector(".log").appendChild(jobElement);
+};
+
+/* Function to render songs by genres in log window */
+const renderSongsByGenre = (songs) => {
+    logs.innerHTML = "";
+
+    songs.forEach(song => {
+        const genreElement = document.createElement("div");
+        genreElement.textContent = `${song.genre}: ${song.count}`;
+        logs.appendChild(genreElement);
+    });
 };

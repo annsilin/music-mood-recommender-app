@@ -38,3 +38,28 @@ const scrollToNextSection = () => {
 btnsScrollSections.forEach(button => {
     button.addEventListener('click', scrollToNextSection);
 });
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    const addCopyEventListener = (element) => {
+        element.addEventListener('copy', (event) => {
+            event.preventDefault();
+            const fullText = element.getAttribute('title');
+            if (event.clipboardData) {
+                event.clipboardData.setData('text/plain', fullText);
+            } else if (window.clipboardData) {
+                window.clipboardData.setData('Text', fullText);
+            }
+        });
+    };
+
+    // Select all elements with class 'songs-list__artist' and 'songs-list__track'
+    const artistElements = document.querySelectorAll('.songs-list__artist');
+    const trackElements = document.querySelectorAll('.songs-list__track');
+
+    // Add copy event listener to each artist element
+    artistElements.forEach(addCopyEventListener);
+
+    // Add copy event listener to each track element
+    trackElements.forEach(addCopyEventListener);
+});
