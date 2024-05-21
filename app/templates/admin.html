@@ -13,7 +13,7 @@
 
         <div class="upload">
             <form action="#" class="upload-form">
-                <div id="drop-area">
+                <div class="drop-area">
                     <p>Выберите или перетащите CSV файл</p>
                     <input type="file" id="file-input" accept=".csv">
                 </div>
@@ -25,14 +25,30 @@
                     <input type="checkbox" name="get-genres" id="get-genres">
                     Определять жанры
                 </label>
-                <button id="upload-btn" disabled>Upload</button>
+                <label>
+                    <input type="checkbox" name="get-album-covers" id="get-album-covers">
+                    Искать обложки альбомов
+                </label>
+                <button class="upload-btn btn" disabled>Загрузить</button>
             </form>
 
-            <div id="log"></div>
+            <div class="log"></div>
+
+            <div class="jobs-wrapper">
+                <button class="get-jobs-btn btn">Статус фоновых задач</button>
+                <div class="delete-job-wrapper">
+                    <label>
+                        <input type="text" id="delete-job" placeholder="Redis job ID to delete">
+                    </label>
+                    <button class="delete-job-btn btn">Удалить задачу</button>
+                </div>
+                <button class="get-songs-by-genre-btn btn">Количество песен в БД по жанрам</button>
+            </div>
         </div>
 
         <div class="instructions">
-            <p>Для добавления треков в БД загрузите CSV файл со следующими столбцами: <br> Строки с пустыми значениями будут проигнорированы.</p>
+            <p>Для добавления треков в БД загрузите CSV файл со следующими столбцами: <br> Строки с пустыми значениями
+                будут проигнорированы.</p>
 
             <table>
                 <thead>
@@ -154,12 +170,22 @@
                     <td>Жанр</td>
                 </tr>
                 </tbody>
+                <tbody class="table-block_album-cover">
+                <tr>
+                    <td>album_cover</td>
+                    <td>https://example.com</td>
+                    <td>Ссылка на изображение с обложкой альбома (может быть пустым)</td>
+                </tr>
+                </tbody>
             </table>
         </div>
 
     </div>
+
 </main>
 
+<script defer src="../static/assets/js/render.js"></script>
+<script defer src="../static/assets/js/api_requests.js"></script>
 <script defer src="../static/admin.js"></script>
 </body>
 </html>

@@ -1,3 +1,7 @@
+body {
+    font-family: sans-serif;
+}
+
 table, th, td  {
     border: 1px solid #000000;
     border-collapse: collapse;
@@ -14,18 +18,17 @@ td {
 .wrapper {
     display: flex;
     gap: 40px;
-    font-family: sans-serif;
 }
 
 .upload-form {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    /*align-items: center;*/
     gap: 10px;
     margin: 16px;
 }
 
-#drop-area {
+.drop-area {
     width: 400px;
     height: 300px;
     display: flex;
@@ -37,11 +40,11 @@ td {
     text-align: center;
 }
 
-#drop-area.hover {
+.drop-area.hover {
     border: 2px dashed #007bff
 }
 
-#upload-btn, #file-input::file-selector-button {
+#file-input::file-selector-button, .btn {
     padding: 10px 20px;
     cursor: pointer;
     background-color: #007bff;
@@ -50,26 +53,40 @@ td {
     border-radius: 5px;
 }
 
-#upload-btn:disabled {
+.upload-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
 
-#message {
-    margin-top: 10px;
-    color: green;
-    font-family: monospace;
-    margin-left: 16px;
-}
 
-#log {
+.log {
     box-sizing: border-box;
     width: 400px;
-    height: 150px;
-    margin-left: 16px;
+    height: 200px;
+    margin: 16px;
     padding: 10px;
     border: 1px solid #CCCCCC;
     background: #f1f1f1;
     overflow-y: scroll;
     font-family: monospace;
+}
+
+.jobs-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    box-sizing: border-box;
+    margin: 16px;
+}
+
+.delete-job-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#delete-job {
+    width: 230px;
+    height: 37px;
+    box-sizing: border-box;
 }

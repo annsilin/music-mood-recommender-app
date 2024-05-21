@@ -1,14 +1,17 @@
 from flask import render_template, request, jsonify, make_response, redirect, url_for
-from app import app, db
+from rq.command import send_stop_job_command
+from sqlalchemy import func
+
+from app import app, redis_conn, queue, db
 from app.models import Song, Genre, Admin
+from app.bg_jobs import process_csv_and_push_to_database_bg
 import random
 import os
-from process_songs import fetch_genres, make_predictions
 from werkzeug.utils import secure_filename
-import csv
-import ast
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt, set_access_cookies
 from datetime import datetime, timedelta
+from rq.job import Job
+from rq.registry import StartedJobRegistry, FinishedJobRegistry, FailedJobRegistry
 
 
 @app.route('/')
@@ -85,10 +88,7 @@ def get_songs():
     serialized_songs = [{
         'artist_name': song.artist_name,
         'track_name': song.track_name,
-        'happy_prob': song.happy,
-        'aggressive_prob': song.aggressive,
-        'sad_prob': song.sad,
-        'calm_prob': song.calm,
+        'album_cover': song.album_cover_url,
     } for song in selected_songs]
 
     return jsonify(serialized_songs)
@@ -98,6 +98,9 @@ def get_songs():
 @jwt_required()
 def process_csv_and_push_to_database():
     file = request.files.get('file')
+    get_moods_flag = request.form['get-moods']
+    get_genres_flag = request.form['get-genres']
+    get_album_covers_flag = request.form['get-album-covers']
 
     if file is None or file.filename == '':
         return jsonify({'error': 'No file uploaded.'}), 500
@@ -105,86 +108,87 @@ def process_csv_and_push_to_database():
     if not allowed_file(filename):
         return jsonify({'error': f'Invalid file type: {filename}'}), 500
 
+    temp_file_path = os.path.join(app.config['TEMP_FOLDER'],
+                                  f'{os.urandom(16).hex()}.csv')
+    file.save(temp_file_path)
+
     current_user = get_jwt_identity()
-    print(current_user)
     if current_user is None:
-        print(current_user)
         return jsonify({'error': 'Authorization required.'}), 401
 
+    if len(queue) >= app.config['MAX_QUEUE_BG_JOBS']:
+        return jsonify({'error': 'Queue full. Please try again later.'}), 503
+
+    job = queue.enqueue(process_csv_and_push_to_database_bg, temp_file_path, get_moods_flag, get_genres_flag,
+                        get_album_covers_flag)
+
+    return jsonify({'message': 'Data processing job queued.', 'job_id': job.id}), 202
+
+
+@app.route('/all-jobs', methods=['GET'])
+@jwt_required()
+def get_all_jobs():
+    queued_job_ids = queue.job_ids
+    started_job_registry = StartedJobRegistry(queue=queue)
+    active_job_ids = started_job_registry.get_job_ids()
+    finished_job_registry = FinishedJobRegistry(queue=queue)
+    finished_job_ids = finished_job_registry.get_job_ids()
+    failed_job_registry = FailedJobRegistry(queue=queue)
+    failed_job_ids = failed_job_registry.get_job_ids()
+
+    all_job_ids = [job_id for job_id in (queued_job_ids + active_job_ids + finished_job_ids + failed_job_ids) if
+                   job_id is not None]
+
+    if not all_job_ids:
+        return jsonify({'message': 'No jobs found.'}), 200
+
+    all_jobs_info = []
+    for job_id in all_job_ids:
+        job = Job.fetch(job_id, connection=redis_conn)
+        if job_id in failed_job_ids:
+            job_info = {
+                'id': job.id,
+                'status': job.get_status(),
+                'created_at': job.created_at.isoformat(),
+                'meta': job.meta,
+            }
+        else:
+            job_info = {
+                'id': job.id,
+                'function': job.func_name,
+                'args': job.args,
+                'kwargs': job.kwargs,
+                'status': job.get_status(),
+                'created_at': job.created_at.isoformat(),
+                'started_at': job.started_at.isoformat() if job.started_at else None,
+                'ended_at': job.ended_at.isoformat() if job.ended_at else None,
+                'meta': job.meta,
+            }
+        all_jobs_info.append(job_info)
+
+    return jsonify(all_jobs_info)
+
+
+@app.route('/delete-job', methods=['DELETE'])
+@jwt_required()
+def delete_job():
+    job_id = request.args.get('job_id')
     try:
+        job = Job.fetch(job_id, connection=redis_conn)
+        if job.get_status() == 'started':
 
-        temp_file_path = os.path.join(app.config['TEMP_FOLDER'],
-                                      f'{os.urandom(16).hex()}.csv')
-        file.save(temp_file_path)
+            if job.func_name == 'app.bg_jobs.process_csv_and_push_to_database_bg':
+                temp_file_path = job.args[0]
+                if temp_file_path and os.path.exists(temp_file_path):
+                    os.remove(temp_file_path)
 
-        get_moods_flag = request.form['get-moods']
-        get_genres_flag = request.form['get-genres']
-
-        if get_moods_flag == 'true':
-            make_predictions(temp_file_path, temp_file_path)
-
-        with open(temp_file_path, 'r', encoding='utf-8') as csvfile:
-            csvreader = csv.DictReader(csvfile)
-
-            first_row = next(csvreader)
-
-            if get_moods_flag == 'false' and any(
-                    col not in first_row for col in ['happy', 'sad', 'calm', 'aggressive']):
-                raise Exception('"Predict moods" flag is not set but mood columns are missing in the CSV file.')
-
-            elif get_genres_flag == 'false' and any(col not in first_row for col in ['genre']):
-                raise Exception('"Get genres" flag is not set but "genre" column is missing in the CSV file.')
-
-            elif get_genres_flag == 'false' and any(col not in first_row for col in ['name', 'album', 'artists']):
-                raise Exception('"name", "album", "artists" columns are missing in the CSV file.')
-
-            csvfile.seek(0)
-            next(csvreader)
-
-            for row in csvreader:
-
-                if any(value == '' for value in row.values()):
-                    continue
-
-                if get_moods_flag == 'false':
-                    try:
-                        happy = float(row['happy'])
-                        sad = float(row['sad'])
-                        calm = float(row['calm'])
-                        aggressive = float(row['aggressive'])
-                        if happy + sad + calm + aggressive != 1.0:
-                            continue
-                    except ValueError:
-                        continue
-
-                artists_list = ast.literal_eval(row['artists'])
-                artists = ', '.join(artists_list)
-
-                if get_genres_flag == 'true':
-                    genre_name = fetch_genres(row['name'], artists_list[0], row['album'])
-
-                if not genre_name:
-                    continue
-
-                genre = Genre.query.filter_by(name=genre_name).first()
-                if not genre:
-                    genre = Genre(name=genre_name)
-                    db.session.add(genre)
-                    db.session.commit()
-
-                song = Song(track_name=row['name'], album_name=row['album'], artist_name=artists,
-                            aggressive=row['aggressive'], calm=row['calm'],
-                            happy=row['happy'], sad=row['sad'], genre_id=genre.id)
-                db.session.add(song)
-
-        db.session.commit()
-        remove_temp_files(app.config['TEMP_FOLDER'])
-        return jsonify({'message': 'Data uploaded and processed successfully.'}), 200
+            send_stop_job_command(redis_conn, job_id)
+            job.delete()
+        else:
+            job.delete()
+        return jsonify({'message': f'Job {job_id} deleted successfully.'}), 200
 
     except Exception as e:
-        db.session.rollback()
-        app.logger.exception(f'Error processing CSV: {e}')
-        remove_temp_files(app.config['TEMP_FOLDER'])
         return jsonify({'error': str(e)}), 500
 
 
@@ -200,12 +204,6 @@ def refresh_expiring_jwts(response):
         return response
     except (RuntimeError, KeyError):
         return response
-
-
-def remove_temp_files(directory):
-    for filename in os.listdir(directory):
-        file_path = os.path.join(directory, filename)
-        os.remove(file_path)
 
 
 def allowed_file(filename):
@@ -224,3 +222,20 @@ def get_genres():
     } for genre in genres]
 
     return jsonify(serialized_genres)
+
+
+@app.route('/get-all-songs-by-genre', methods=['GET'])
+@jwt_required()
+def get_songs_by_genre():
+    # Fetch songs grouped by genre
+    genre_counts = db.session.query(Genre.name, func.count(Song.id)).\
+        join(Song, Genre.id == Song.genre_id).\
+        group_by(Genre.name).\
+        all()
+
+    serialized_genre_counts = [{
+        'genre': genre,
+        'count': count
+    } for genre, count in genre_counts]
+
+    return jsonify(serialized_genre_counts)

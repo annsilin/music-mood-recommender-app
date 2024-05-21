@@ -44,7 +44,7 @@ const displaySongsSection = () => {
     document.querySelector('.section-songs').style.display = 'flex';
 }
 
-/* Function to create HTML element for song */
+/* Function to create HTML element for the song */
 const createSongElement = (song) => {
     const songItem = document.createElement('li');
     songItem.classList.add('songs-list__item');
@@ -63,10 +63,27 @@ const createSongElement = (song) => {
     const songArtist = document.createElement('span');
     songArtist.classList.add('songs-list__artist');
     songArtist.textContent = song.artist_name;
+    songArtist.title = song.artist_name;
 
     const songName = document.createElement('span');
     songName.classList.add('songs-list__track');
     songName.textContent = song.track_name;
+    songName.title = song.track_name;
+
+    const addCopyEventListener = (element) => {
+        element.addEventListener('copy', (e) => {
+            e.preventDefault();
+            const fullText = element.getAttribute('title');
+            if (e.clipboardData) {
+                e.clipboardData.setData('text/plain', fullText);
+            } else if (window.clipboardData) {
+                window.clipboardData.setData('Text', fullText);
+            }
+        });
+    };
+
+    addCopyEventListener(songArtist);
+    addCopyEventListener(songName);
 
     artistTrackContainer.appendChild(songArtist);
     artistTrackContainer.appendChild(songName);
@@ -102,4 +119,56 @@ const stopLoadingAnimation = () => {
 
     const sectionSongsContent = sectionSongs.querySelector('.section__content');
     sectionSongsContent.style.display = 'flex';
+};
+
+
+/* Function to change the look of upload form elements depending on status */
+const fileUploadFormRender = (status) => {
+    if (status === 'upload-start') {
+        uploadBtn.disabled = true;
+        getMoodsCheckbox.disabled = true;
+        getGenresCheckbox.disabled = true;
+        getAlbumCoversCheckbox.disabled = true;
+        logs.textContent = 'Uploading...';
+    }
+    if (status === 'upload-success') {
+        fileInput.value = '';
+        uploadBtn.disabled = true;
+        getMoodsCheckbox.disabled = false;
+        getGenresCheckbox.disabled = false;
+        getAlbumCoversCheckbox.disabled = false;
+    }
+    if (status === 'upload-error') {
+        uploadBtn.disabled = false;
+        getMoodsCheckbox.disabled = false;
+        getGenresCheckbox.disabled = false;
+        getAlbumCoversCheckbox.disabled = false;
+    }
+};
+
+
+/* Function to render background job status */
+const renderJobStatus = (job) => {
+    const jobElement = document.createElement("div");
+    jobElement.innerHTML = `
+          <p><strong>ID:</strong> ${job.id || "N/A"}</p>
+          <p><strong>Function:</strong> ${job.function || "N/A"}</p>
+          <p><strong>Status:</strong> ${job.status || "N/A"}</p>
+          <p><strong>Created At:</strong> ${job.created_at || "N/A"}</p>
+          <p><strong>Started At:</strong> ${job.started_at || "N/A"}</p>
+          <p><strong>Progress:</strong> ${job.meta && job.meta.progress ? job.meta.progress + "%" : "N/A"}</p>
+          <hr>
+      `;
+    document.querySelector(".log").appendChild(jobElement);
+};
+
+/* Function to render songs by genres in log window */
+const renderSongsByGenre = (songs) => {
+    logs.innerHTML = "";
+
+    songs.forEach(song => {
+        const genreElement = document.createElement("div");
+        genreElement.textContent = `${song.genre}: ${song.count}`;
+        logs.appendChild(genreElement);
+    });
 };
