@@ -42,6 +42,10 @@ class Admin(db.Model):
     username: so.Mapped[str] = so.mapped_column(sa.String(50), unique=True, nullable=False)
     password_hash: so.Mapped[Optional[str]] = so.mapped_column(sa.String(300), nullable=False)
 
+    __table_args__ = (
+        sa.UniqueConstraint('username', name='uq_username'),
+    )
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
