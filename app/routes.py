@@ -1,14 +1,15 @@
 from flask import render_template, request, jsonify, make_response, redirect, url_for
+from jwt import ExpiredSignatureError
 from rq.command import send_stop_job_command
 from sqlalchemy import func
-
 from app import app, redis_conn, queue, db
 from app.models import Song, Genre, Admin
 from app.bg_jobs import process_csv_and_push_to_database_bg
 import random
 import os
 from werkzeug.utils import secure_filename
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt, set_access_cookies
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt, set_access_cookies, \
+    verify_jwt_in_request
 from datetime import datetime, timedelta
 from rq.job import Job
 from rq.registry import StartedJobRegistry, FinishedJobRegistry, FailedJobRegistry
@@ -19,6 +20,11 @@ def index():
     return render_template('index.html')
 
 
+@app.errorhandler(ExpiredSignatureError)
+def handle_expired_error(e):
+    return redirect(url_for('login'))
+
+
 @app.route('/admin')
 @jwt_required(optional=True)
 def admin():
@@ -26,7 +32,7 @@ def admin():
     if current_user:
         return render_template('admin.html')
     else:
-        return render_template('login.html')
+        return redirect(url_for('login'))
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -49,8 +55,14 @@ def login():
         set_access_cookies(response, encoded_access_token=access_token)
         return response
     else:
-        if get_jwt_identity():
-            return redirect(url_for('admin'))
+        try:
+            verify_jwt_in_request(optional=True)
+            current_user = get_jwt_identity()
+            if current_user:
+                return redirect(url_for('admin'))
+        except ExpiredSignatureError:
+            pass
+        return render_template('login.html')
 
 
 @app.route('/get-songs', methods=['GET'])
@@ -120,7 +132,7 @@ def process_csv_and_push_to_database():
         return jsonify({'error': 'Queue full. Please try again later.'}), 503
 
     job = queue.enqueue(process_csv_and_push_to_database_bg, temp_file_path, get_moods_flag, get_genres_flag,
-                        get_album_covers_flag)
+                        get_album_covers_flag, result_ttl=86400)
 
     return jsonify({'message': 'Data processing job queued.', 'job_id': job.id}), 202
 
