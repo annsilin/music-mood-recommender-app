@@ -73,6 +73,12 @@ def get_songs():
     sad_prob = float(request.args.get('sad_prob'))
     calm_prob = float(request.args.get('calm_prob'))
 
+    if abs(happy_prob + sad_prob + calm_prob + aggressive_prob - 1.0) >= 0.01:
+        return jsonify({'error': 'The sum of the probabilities is not equal to one'}), 406
+
+    if not (0 <= happy_prob <= 1 and 0 <= sad_prob <= 1 and 0 <= calm_prob <= 1 and 0 <= aggressive_prob <= 1):
+        return jsonify({'error': 'One or more probabilities are out of the range between 0 and 1'}), 406
+
     threshold = 0.05
 
     songs = (Song.query
