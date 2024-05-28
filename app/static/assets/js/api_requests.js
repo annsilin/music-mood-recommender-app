@@ -3,8 +3,10 @@ const fetchSongs = async (genre, normalizedX, normalizedY) => {
     startLoadingAnimation();
     const queryParams = new URLSearchParams({
         genre: genre,
-        x: normalizedX,
-        y: normalizedY
+        happy_prob: happyProb,
+        aggressive_prob: aggressiveProb,
+        calm_prob: calmProb,
+        sad_prob: sadProb,
     });
     const url = `/get-songs?${queryParams.toString()}`;
 

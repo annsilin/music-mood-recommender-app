@@ -68,13 +68,11 @@ def login():
 @app.route('/get-songs', methods=['GET'])
 def get_songs():
     genre_id = request.args.get('genre')
-    x = float(request.args.get('x'))
-    y = float(request.args.get('y'))
+    happy_prob = float(request.args.get('happy_prob'))
+    aggressive_prob = float(request.args.get('aggressive_prob'))
+    sad_prob = float(request.args.get('sad_prob'))
+    calm_prob = float(request.args.get('calm_prob'))
 
-    happy_prob = x * y
-    aggressive_prob = (1 - x) * y
-    sad_prob = (1 - x) * (1 - y)
-    calm_prob = x * (1 - y)
     threshold = 0.05
 
     songs = (Song.query
@@ -240,9 +238,9 @@ def get_genres():
 @jwt_required()
 def get_songs_by_genre():
     # Fetch songs grouped by genre
-    genre_counts = db.session.query(Genre.name, func.count(Song.id)).\
-        join(Song, Genre.id == Song.genre_id).\
-        group_by(Genre.name).\
+    genre_counts = db.session.query(Genre.name, func.count(Song.id)). \
+        join(Song, Genre.id == Song.genre_id). \
+        group_by(Genre.name). \
         all()
 
     serialized_genre_counts = [{

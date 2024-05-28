@@ -11,5 +11,5 @@ docker-compose up
 To create an admin one could use the following command:
 
 ```shell
-docker exec -it music-mood-recommender-app flask create-admin myadmin
+docker exec -it music-mood-recommender-app flask create-admin <username>
 ```

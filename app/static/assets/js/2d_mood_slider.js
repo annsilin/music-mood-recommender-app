@@ -2,6 +2,7 @@ const moodSlider = document.getElementById('square');
 const moodPointer = document.getElementById('circle');
 let offsetX, offsetY;
 let normalizedX = 0.5, normalizedY = 0.5;
+let happyProb, aggressiveProb, calmProb, sadProb;
 
 // Set initial position of the moodPointer to the center of the moodSlider
 moodPointer.style.transform = `translate(${(moodSlider.clientWidth - moodPointer.clientWidth) / 2}px, ${(moodSlider.clientHeight - moodPointer.clientHeight) / 2}px)`;
@@ -31,11 +32,10 @@ const handleMouseMove = (e) => {
     // Calculate normalized coordinates
     normalizedX = (clampedX / (moodSlider.clientWidth - moodPointer.clientWidth)).toFixed(2);
     normalizedY = (1 - (clampedY / (moodSlider.clientHeight - moodPointer.clientHeight))).toFixed(2);
-    console.log(`X: ${normalizedX}, Y: ${normalizedY}`,
-        `happy: ${normalizedX * normalizedY}`,
-        `aggressive: ${(1 - normalizedX) * normalizedY}`,
-        `sad: ${(1 - normalizedX) * (1 - normalizedY)}`,
-        `calm: ${normalizedX * (1 - normalizedY)}`);
+    happyProb = normalizedX * normalizedY;
+    aggressiveProb = (1 - normalizedX) * normalizedY;
+    sadProb = (1 - normalizedX) * (1 - normalizedY);
+    calmProb = normalizedX * (1 - normalizedY);
 }
 
 /* Function to handle mouse up event for 2D mood slider */
@@ -67,5 +67,8 @@ const handleTouchMove = (e) => {
     // Calculate normalized coordinates
     normalizedX = (clampedX / (moodSlider.clientWidth - moodPointer.clientWidth)).toFixed(2);
     normalizedY = (1 - (clampedY / (moodSlider.clientHeight - moodPointer.clientHeight))).toFixed(2);
-    console.log(`X: ${normalizedX}, Y: ${normalizedY}`);
+    happyProb = normalizedX * normalizedY;
+    aggressiveProb = (1 - normalizedX) * normalizedY;
+    sadProb = (1 - normalizedX) * (1 - normalizedY);
+    calmProb = normalizedX * (1 - normalizedY);
 }
