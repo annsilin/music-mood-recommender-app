@@ -23,12 +23,13 @@ songs belonging to each of the four mood categories.
 First of all, user selects a mood on a 2D slider where **X** and **Y** coordinates take values between 0.0 and 1.0.
 Probabilities of each mood category are calculated in the following way:
 
-```math
-p_{happy} &= x * y;
-p_{aggressive} &= (1 - x) * y;
-p_{sad} &= (1 - x) * (1 - y);
-p_{calm} &= x * (1 - y)
-```
+$$p_{happy} = x * y;$$
+
+$$p_{aggressive} = (1 - x) * y;$$
+
+$$p_{sad} = (1 - x) * (1 - y);$$
+
+$$p_{calm} = x * (1 - y)$$
 
 Which means that when a song belongs to a given mood category with probability of 100% it corresponds to the following *
 *X** and **Y** coordinates:
@@ -41,6 +42,16 @@ Which means that when a song belongs to a given mood category with probability o
 Then user selects only one preferred genre. After that the query to the database with calculated mood probabilities (
 from **X** and **Y** coordinates) and chosen genre id is performed. Then server takes 20 random songs from the query and
 returns them to the user.
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/a2be1d95-9c7b-4e98-bb04-12a27b05ba7c" width="30%" alt="Choose Mood Screen" />
+  <img src="https://github.com/user-attachments/assets/397929cd-fc57-4047-bbee-948e8ceff89e" width="30%" alt="Choose Genre Screen" />
+  <img src="https://github.com/user-attachments/assets/2427fff8-5421-4c8b-80c2-a2ee770f4e9b" width="30%" alt="Generated Playlist" />
+</p>
+
+<p align="center">
+  <b>Figure 1:</b> User interface showing (left) mood selection, (middle) genre selection, and (right) generated playlist.
+</p>
 
 ### Database Schema
 
