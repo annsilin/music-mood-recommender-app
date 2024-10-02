@@ -31,8 +31,8 @@ $$p_{sad} = (1 - x) * (1 - y);$$
 
 $$p_{calm} = x * (1 - y)$$
 
-Which means that when a song belongs to a given mood category with probability of 100% it corresponds to the following *
-*X** and **Y** coordinates:
+Which means that when a song belongs to a given mood category with probability of 100% it corresponds to the following 
+**X** and **Y** coordinates:
 
 - **Happy**: $x=1; y=1$
 - **Aggressive**: $x=0; y=1$
