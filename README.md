@@ -14,7 +14,7 @@
 ## Project introduction
 
 This project is a part of my bachelor's thesis aimed at developing a web application with a music recommender system.
-The system allows users to select their mood (in range of four categories) and a preferred music genre, after which a
+The system allows users to select the preferred mood of the music (in range of four categories) and a preferred music genre, after which a
 playlist of 20 songs is recommended. The system integrates machine learning (ML) techniques to predict probability of
 songs belonging to each of the four mood categories.
 
